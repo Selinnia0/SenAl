@@ -14,6 +14,10 @@ default: &default
     class: EscalationSweepJob
     queue: default
     schedule: every minute
+  gap_report:
+    class: GapReportJob
+    queue: default
+    schedule: every day at 8am Europe/Istanbul
 
 development:
   <<: *default

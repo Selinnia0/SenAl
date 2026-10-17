@@ -10,7 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_213147) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_17_214013) do
+  create_table "blackout_periods", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "kind", default: 0, null: false
+    t.integer "applies_to", default: 0, null: false
+    t.date "starts_on", null: false
+    t.date "ends_on", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["starts_on", "ends_on"], name: "index_blackout_periods_on_starts_on_and_ends_on"
+  end
+
   create_table "escalation_levels", force: :cascade do |t|
     t.integer "escalation_policy_id", null: false
     t.integer "position", null: false
@@ -67,10 +78,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_213147) do
 
   create_table "notifications", force: :cascade do |t|
     t.integer "user_id", null: false
-    t.integer "incident_id", null: false
+    t.integer "incident_id"
     t.datetime "read_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "message"
     t.index ["incident_id"], name: "index_notifications_on_incident_id"
     t.index ["user_id"], name: "index_notifications_on_user_id"
   end
@@ -128,6 +140,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_213147) do
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
+  create_table "unavailabilities", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.datetime "starts_at", null: false
+    t.datetime "ends_at", null: false
+    t.string "reason"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "starts_at", "ends_at"], name: "index_unavailabilities_on_user_id_and_starts_at_and_ends_at"
+    t.index ["user_id"], name: "index_unavailabilities_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email_address", null: false
     t.string "password_digest", null: false
@@ -153,4 +176,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_213147) do
   add_foreign_key "schedule_memberships", "users"
   add_foreign_key "services", "escalation_policies"
   add_foreign_key "sessions", "users"
+  add_foreign_key "unavailabilities", "users"
 end

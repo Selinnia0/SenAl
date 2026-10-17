@@ -63,6 +63,9 @@ Ne yapılacağı: [docs/specs.md](docs/specs.md). Hangi sırayla: [docs/plan.md]
 | Boşluk atlamada (`gap_skipped`) `escalated` kaydı da yazılır; bütün seviyeler boşsa turlar beklemeden tükenir ve `escalation_exhausted` olur. `low` olaylarda da boşluk atlanır (bildirecek birini bulmak için), zaman aşımı eskalasyonu yapılmaz. | Spec "beklemeden sonraki seviyeye geçilir" diyor; aciliyet ayrımı yalnızca zaman aşımı için tanımlı. |
 | `escalation_exhausted` sonrası olay `triggered` kalır, `escalate_at` nil olur. | Spec yeni bir durum tanımlamıyor; yöneticiler bildirilir, olay hâlâ "Gördüm" bekler. |
 | `escalate!` `triggered` olmayan olayda `false` döner (istisna fırlatmaz). | Bir durum geçişi değil; süpürme işi yarış durumunda sessizce atlayabilsin diye. |
+| `notifications.incident_id` boş olabilir, yeni `message` (text) alanı eklendi (yeni migration). | Z5 boşluk raporu "takvim adı + aralıklar" içeren, bir olaya bağlı olmayan bildirimdir; spec §3.12'deki alanlar bunu taşıyamıyor. Olaysız bildirimde `message` zorunlu. |
+| `Schedule#gaps` aralıkları bitişi hariç (`a...b`) döner; örnekleme `from`'dan başlar, son aralık `to`'da kesilir. | Spec bitişin dahil olup olmadığını belirtmiyor; `Unavailability`/`Override` ile aynı `[başlangıç, bitiş)` kuralı. |
+| `GapReportJob` zamanlaması `every day at 8am Europe/Istanbul`. | Sunucunun saat dilimi ne olursa olsun 08:00 İstanbul saatinde çalışsın diye (Fugit ile doğrulandı). |
 | Kayıt sayfası (`/registration/new`) eklendi; spec'te yok. | İnsan isteği. Kayıt olan herkes `responder` olur (`role` izinli parametrelerde yok, testli); `manager` yalnızca seed/konsol ile atanır. |
 
 ## 6. Komutlar
