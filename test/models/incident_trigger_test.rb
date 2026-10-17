@@ -24,13 +24,15 @@ class IncidentTriggerTest < ActiveSupport::TestCase
     assert_nil incident.escalate_at
   end
 
-  test "seviyede nöbetçi yoksa bildirim ve notified kaydı oluşmaz" do
-    schedules(:primary).schedule_memberships.destroy_all
+  test "politikada seviye yoksa bildirim gitmez ve escalate_at nil" do
+    policy = EscalationPolicy.create!(name: "Seviyesiz")
+    service = Service.create!(name: "Seviyesiz servis", escalation_policy: policy)
 
-    incident = Incident.trigger!(service: @service, title: "Test", dedup_key: "t1", urgency: :high)
+    incident = Incident.trigger!(service: service, title: "Test", dedup_key: "t1", urgency: :high)
 
     assert_empty incident.notifications
     assert_nil incident.assignee
+    assert_nil incident.escalate_at
     assert_equal %w[triggered], incident.incident_events.map(&:kind)
   end
 

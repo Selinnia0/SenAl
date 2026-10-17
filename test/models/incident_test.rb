@@ -136,12 +136,11 @@ class IncidentTest < ActiveSupport::TestCase
   end
 
   test "retrigger! retriggered olayını sistem adına (user nil) yazar" do
-    assert_difference -> { @acknowledged.incident_events.count }, 1 do
+    assert_difference -> { @acknowledged.incident_events.where(kind: "retriggered").count }, 1 do
       @acknowledged.retrigger!
     end
 
-    event = @acknowledged.incident_events.last
-    assert_equal "retriggered", event.kind
+    event = @acknowledged.incident_events.find_by!(kind: "retriggered")
     assert_nil event.user
     assert_equal Time.current, event.occurred_at
   end

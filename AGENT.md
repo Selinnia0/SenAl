@@ -58,6 +58,11 @@ Ne yapılacağı: [docs/specs.md](docs/specs.md). Hangi sırayla: [docs/plan.md]
 | API: açık olayda izin verilmeyen geçiş (ör. zaten üstlenilmiş olaya `acknowledge`) `409 Conflict` döner; bilinmeyen `severity` `422` döner. | `specs.md` §6 bu iki durumu tanımlamıyor; "sessizce geçmez" ilkesine uygun açık hata seçildi. |
 | `incidents` üzerinde kısmi benzersiz indeks (`service_id, dedup_key WHERE status <> 2`). | "Açık olay en fazla 1" kuralı yarış durumunda da veritabanı düzeyinde korunsun diye. |
 | `notified` olayında `user_id` boş; bildirilen kişi `details["user_id"]` içinde. | `IncidentEvent.user` "eylemi yapan kişi"dir; bildirimi sistem yapar. |
+| `Incident has_many :incident_events, -> { order(:occurred_at, :id) }` (spec: yalnızca `occurred_at`). | Aynı anda yazılan kayıtlar (ör. `triggered` + `notified`) yazılış sırasıyla görünsün diye `id` ikincil sıralama anahtarı. |
+| `stale_acknowledged` scope'u servisteki her farklı `ack_reset_minutes` değeri için ayrı koşul kurar (`or` ile birleşir). | SQL tarih aritmetiği SQLite ve PostgreSQL'de farklı; canlı veritabanı henüz belli değil. Farklı süre değeri sayısı küçük. |
+| Boşluk atlamada (`gap_skipped`) `escalated` kaydı da yazılır; bütün seviyeler boşsa turlar beklemeden tükenir ve `escalation_exhausted` olur. `low` olaylarda da boşluk atlanır (bildirecek birini bulmak için), zaman aşımı eskalasyonu yapılmaz. | Spec "beklemeden sonraki seviyeye geçilir" diyor; aciliyet ayrımı yalnızca zaman aşımı için tanımlı. |
+| `escalation_exhausted` sonrası olay `triggered` kalır, `escalate_at` nil olur. | Spec yeni bir durum tanımlamıyor; yöneticiler bildirilir, olay hâlâ "Gördüm" bekler. |
+| `escalate!` `triggered` olmayan olayda `false` döner (istisna fırlatmaz). | Bir durum geçişi değil; süpürme işi yarış durumunda sessizce atlayabilsin diye. |
 | Kayıt sayfası (`/registration/new`) eklendi; spec'te yok. | İnsan isteği. Kayıt olan herkes `responder` olur (`role` izinli parametrelerde yok, testli); `manager` yalnızca seed/konsol ile atanır. |
 
 ## 6. Komutlar
