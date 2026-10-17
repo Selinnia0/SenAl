@@ -1,1 +1,1 @@
-web: bin/rails server
+web: SOLID_QUEUE_IN_PUMA=1 bin/rails server

@@ -3,6 +3,11 @@
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
+
+  # Demo verisi (db/seeds.rb tekrar çalıştırılabilir). Render'da SEED_ON_BOOT=1.
+  if [ "${SEED_ON_BOOT:-0}" == "1" ]; then
+    ./bin/rails db:seed
+  fi
 fi
 
 exec "${@}"

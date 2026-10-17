@@ -1,9 +1,10 @@
 # syntax=docker/dockerfile:1
 # check=error=true
 
-# This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t sen_al .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name sen_al sen_al
+# Production imajı (Render bu dosyayla derler, bkz. render.yaml). Elle denemek için:
+# docker build -t senal .
+# docker run -p 3000:3000 -e PORT=3000 -e DATABASE_URL=postgres://... -e SECRET_KEY_BASE=$(openssl rand -hex 64) \
+#   -e RAILS_FORCE_SSL=0 -e SOLID_QUEUE_IN_PUMA=1 senal ./bin/rails server
 
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 
@@ -16,7 +17,7 @@ WORKDIR /rails
 
 # Install base packages
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips sqlite3 && \
+    apt-get install --no-install-recommends -y curl libjemalloc2 libvips && \
     ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
@@ -24,7 +25,7 @@ RUN apt-get update -qq && \
 ENV RAILS_ENV="production" \
     BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development" \
+    BUNDLE_WITHOUT="development:test" \
     LD_PRELOAD="/usr/local/lib/libjemalloc.so"
 
 # Throw-away build stage to reduce size of final image

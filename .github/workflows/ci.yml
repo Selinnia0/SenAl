@@ -92,3 +92,70 @@ jobs:
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:test:prepare test
+
+  # Render'daki ortamın aynısı: production modu + PostgreSQL + Puma içinde Solid Queue.
+  production:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: senal_production
+        ports:
+          - 5432:5432
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      RAILS_ENV: production
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/senal_production
+      SECRET_KEY_BASE_DUMMY: "1"
+      RAILS_FORCE_SSL: "0"
+
+    steps:
+      - name: Install packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libvips
+
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Prepare database and seed twice (seed must be re-runnable)
+        run: |
+          bin/rails db:prepare
+          bin/rails db:seed
+          bin/rails db:seed
+
+      - name: Run background jobs once against PostgreSQL
+        run: |
+          bin/rails runner 'EscalationSweepJob.perform_now; GapReportJob.perform_now; puts "Olay: #{Incident.count}, kuyruk tablosu: #{ActiveRecord::Base.connection.tables.grep(/solid_queue/).size}"'
+
+      - name: Precompile assets
+        run: bin/rails assets:precompile
+
+      - name: Boot server with Solid Queue in Puma and hit health check
+        env:
+          PORT: "3000"
+          SOLID_QUEUE_IN_PUMA: "1"
+        run: |
+          bin/rails server > server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://localhost:3000/up && break; sleep 2; done
+          curl -sf http://localhost:3000/up
+          curl -sf -o /dev/null http://localhost:3000/session/new
+          grep -q "Started Scheduler" server.log || (cat server.log; exit 1)
+
+  # Render'ın kullanacağı imaj derlenebiliyor mu?
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Build production image
+        run: docker build -t senal .
