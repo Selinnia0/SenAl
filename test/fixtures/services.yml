@@ -1,0 +1,5 @@
+sis:
+  name: Öğrenci Bilgi Sistemi
+  integration_key: 0123456789abcdef0123456789abcdef
+  escalation_policy: default
+  ack_reset_minutes: 240

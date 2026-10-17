@@ -1,0 +1,9 @@
+primary:
+  name: BT Altyapı
+  starts_at: 2026-10-05 07:00:00
+  rotation_days: 7
+
+secondary:
+  name: Laboratuvar
+  starts_at: 2026-10-05 07:00:00
+  rotation_days: 7

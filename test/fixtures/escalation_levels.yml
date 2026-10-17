@@ -1,0 +1,11 @@
+level0:
+  escalation_policy: default
+  position: 0
+  schedule: primary
+  timeout_minutes: 5
+
+level1:
+  escalation_policy: default
+  position: 1
+  schedule: secondary
+  timeout_minutes: 5

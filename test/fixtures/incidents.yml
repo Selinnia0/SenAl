@@ -1,0 +1,33 @@
+# Zamanlar UTC; Istanbul = UTC+3. Çapa: 2026-10-19 10:00 Istanbul = 07:00 UTC.
+triggered:
+  service: sis
+  title: db1 disk %95
+  dedup_key: disk-full-db1
+  urgency: high
+  status: triggered
+  assignee: alice
+  current_level: 0
+  escalation_round: 0
+  triggered_at: 2026-10-19 07:00:00
+  escalate_at: 2026-10-19 07:05:00
+
+acknowledged:
+  service: sis
+  title: Giriş sayfası yavaş
+  dedup_key: login-slow
+  urgency: high
+  status: acknowledged
+  assignee: alice
+  triggered_at: 2026-10-19 06:00:00
+  acknowledged_at: 2026-10-19 06:02:00
+
+resolved:
+  service: sis
+  title: Sertifika süresi doluyor
+  dedup_key: cert-expiry
+  urgency: low
+  status: resolved
+  assignee: bob
+  triggered_at: 2026-10-18 06:00:00
+  acknowledged_at: 2026-10-18 06:10:00
+  resolved_at: 2026-10-18 07:00:00
