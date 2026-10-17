@@ -28,7 +28,26 @@ bin/ci             # CI'daki tüm adımlar (rubocop, brakeman, audit, test)
 
 ## Demo kullanıcılar
 
-_(Faz 6'da seed ile eklenecek.)_
+`bin/rails db:seed` ile oluşur. **Demo şifresi (tümü): `senal-demo`** — yalnızca demo içindir.
+
+| E-posta | Ad | Rol | Akademik rol |
+|---|---|---|---|
+| `yonetici@senal.test` | Selin Yönetici | Yönetici | Personel |
+| `ayse@senal.test` | Ayşe Kaya | Nöbetçi | Asistan |
+| `mehmet@senal.test` | Mehmet Arslan | Nöbetçi | Asistan |
+| `burak@senal.test` | Burak Demir | Nöbetçi | Personel |
+| `zeynep@senal.test` | Zeynep Şahin | Nöbetçi | Personel |
+
+Seed ayrıca 2 takvim (BT Altyapı, Laboratuvar), 2 seviyeli eskalasyon politikası, "Öğrenci Bilgi Sistemi" servisi,
+yarından başlayan bir vize haftası (yalnızca asistanlar) ve 2 gün sonrası için Laboratuvar'da kasıtlı bir nöbet boşluğu
+(asistanlar vize haftasında, Zeynep izinli) ve farklı durumlarda 3 olay oluşturur.
+
+### Demo akışı
+
+1. Yönetici ile gir → **Servisler → Öğrenci Bilgi Sistemi** → `curl` komutunu kopyala ve çalıştır.
+2. **Pano**'da olay görünür; nöbetçi (ör. Ayşe) **Bildirimlerim**'de görür → olay detayında **Gördüm** → **Çözüldü**.
+3. "Gördüm" denmezse 5 dk sonra Laboratuvar nöbetçisine eskale edilir (Solid Queue, her dakika).
+4. Adaptasyon: **Akademik takvim**'de vize haftası → asistanlar **tüm** takvimlerden düşer; **Takvimler → Laboratuvar**'da boşluk günü kırmızı, Pano'da "nöbet boşlukları" uyarısı.
 
 ## Örnek alarm (`curl`)
 

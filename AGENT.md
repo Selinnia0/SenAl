@@ -66,6 +66,9 @@ Ne yapılacağı: [docs/specs.md](docs/specs.md). Hangi sırayla: [docs/plan.md]
 | `notifications.incident_id` boş olabilir, yeni `message` (text) alanı eklendi (yeni migration). | Z5 boşluk raporu "takvim adı + aralıklar" içeren, bir olaya bağlı olmayan bildirimdir; spec §3.12'deki alanlar bunu taşıyamıyor. Olaysız bildirimde `message` zorunlu. |
 | `Schedule#gaps` aralıkları bitişi hariç (`a...b`) döner; örnekleme `from`'dan başlar, son aralık `to`'da kesilir. | Spec bitişin dahil olup olmadığını belirtmiyor; `Unavailability`/`Override` ile aynı `[başlangıç, bitiş)` kuralı. |
 | `GapReportJob` zamanlaması `every day at 8am Europe/Istanbul`. | Sunucunun saat dilimi ne olursa olsun 08:00 İstanbul saatinde çalışsın diye (Fugit ile doğrulandı). |
+| Yetki: `ManagerOnly` concern'i manager olmayanı `root`'a yönlendirir (403 yerine). Override'ı herkes ekler, yalnızca manager siler. | Spec yalnızca servis ve akademik takvim için yetki tanımlıyor; override silme kuralı spec'te yok. |
+| `Schedule#on_call_samples` eklendi; `gaps` ve takvim sayfasının günlük tablosu (`on_call_days`) aynı örneklemeyi kullanır. İlk örnek `from` anında, sonrakiler tam saat başında. | Tablo ile boşluk raporu hiçbir zaman çelişmesin; saat başı olmayan `from` boşluk sınırlarını kaydırmasın (testli). |
+| Pano ayrıca önümüzdeki 7 günün boşluklarını gösterir. | Adaptasyonun canlı demoda görünmesi için (spec §9 "boşluk uyarısını göster"). |
 | Kayıt sayfası (`/registration/new`) eklendi; spec'te yok. | İnsan isteği. Kayıt olan herkes `responder` olur (`role` izinli parametrelerde yok, testli); `manager` yalnızca seed/konsol ile atanır. |
 
 ## 6. Komutlar

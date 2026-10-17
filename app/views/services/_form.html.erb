@@ -1,0 +1,13 @@
+<%= render "shared/errors", record: service %>
+<%= form_with model: service do |form| %>
+  <%= form.label :name, "Ad" %>
+  <%= form.text_field :name, required: true %>
+
+  <%= form.label :escalation_policy_id, "Eskalasyon politikası" %>
+  <%= form.collection_select :escalation_policy_id, EscalationPolicy.order(:name), :id, :name %>
+
+  <%= form.label :ack_reset_minutes, '"Gördüm" sıfırlama süresi (dakika)' %>
+  <%= form.number_field :ack_reset_minutes, min: 1 %>
+
+  <%= form.submit "Kaydet" %>
+<% end %>

@@ -26,7 +26,18 @@
         </ul>
         <% if authenticated? %>
           <ul>
-            <li><%= Current.user.name %></li>
+            <li><%= link_to "Pano", root_path %></li>
+            <li><%= link_to "Olaylar", incidents_path %></li>
+            <li><%= link_to "Takvimler", schedules_path %></li>
+            <li><%= link_to "Müsaitliğim", unavailabilities_path %></li>
+            <li><%= link_to "Bildirimlerim (#{Current.user.notifications.unread.count})", notifications_path %></li>
+            <% if Current.user.manager? %>
+              <li><%= link_to "Servisler", services_path %></li>
+              <li><%= link_to "Akademik takvim", blackout_periods_path %></li>
+            <% end %>
+          </ul>
+          <ul>
+            <li><small><%= Current.user.name %> · <%= enum_label(Current.user, :role) %></small></li>
             <li><%= button_to "Çıkış", session_path, method: :delete %></li>
           </ul>
         <% end %>

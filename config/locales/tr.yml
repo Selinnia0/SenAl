@@ -1,7 +1,57 @@
 tr:
+  date:
+    formats:
+      compact: "%d.%m.%Y"
+      weekday: "%d.%m.%Y %a"
+  time:
+    formats:
+      compact: "%d.%m.%Y %H:%M"
+
+  enums:
+    incident:
+      status:
+        triggered: Tetiklendi
+        acknowledged: Görüldü
+        resolved: Çözüldü
+      urgency:
+        high: Yüksek
+        low: Düşük
+    incident_event:
+      kind:
+        triggered: Olay açıldı
+        notified: Bildirim
+        acknowledged: Görüldü
+        resolved: Çözüldü
+        escalated: Eskale edildi
+        retriggered: Yeniden tetiklendi
+        deduplicated: Tekrar eden alarm
+        gap_skipped: Boş seviye atlandı
+        escalation_exhausted: Eskalasyon tükendi
+    user:
+      role:
+        responder: Nöbetçi
+        manager: Yönetici
+      academic_role:
+        staff: Personel
+        assistant: Asistan
+    blackout_period:
+      kind:
+        exam_week: Sınav haftası
+        holiday: Bayram / tatil
+        semester_break: Dönem arası
+      applies_to:
+        assistants: Yalnızca asistanlar
+        everyone: Herkes
+
   activerecord:
     models:
       user: Kullanıcı
+      service: Servis
+      incident: Olay
+      schedule: Nöbet takvimi
+      override: Elle değişiklik
+      unavailability: İzin
+      blackout_period: Akademik kapanma dönemi
     attributes:
       user:
         name: Ad soyad
@@ -10,3 +60,22 @@ tr:
         password_confirmation: Şifre (tekrar)
         role: Rol
         academic_role: Akademik rol
+      service:
+        name: Ad
+        integration_key: Entegrasyon anahtarı
+        escalation_policy: Eskalasyon politikası
+        ack_reset_minutes: '"Gördüm" sıfırlama süresi (dk)'
+      override:
+        user: Kişi
+        starts_at: Başlangıç
+        ends_at: Bitiş
+      unavailability:
+        starts_at: Başlangıç
+        ends_at: Bitiş
+        reason: Sebep
+      blackout_period:
+        name: Ad
+        kind: Tür
+        applies_to: Kimlere uygulanır
+        starts_on: İlk gün
+        ends_on: Son gün

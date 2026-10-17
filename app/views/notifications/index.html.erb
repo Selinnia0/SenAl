@@ -1,0 +1,28 @@
+<% content_for :title, "Bildirimlerim" %>
+
+<h1>Bildirimlerim</h1>
+
+<% if @notifications.any? %>
+  <%= button_to "Tümünü okundu işaretle", read_all_notifications_path, method: :patch %>
+
+  <table>
+    <thead>
+      <tr><th>Zaman</th><th>Bildirim</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% @notifications.each do |notification| %>
+        <tr>
+          <td><%= format_time(notification.created_at) %></td>
+          <% if notification.incident %>
+            <td><%= link_to notification.incident.title, notification.incident %></td>
+          <% else %>
+            <td><%= simple_format(notification.message, {}, wrapper_tag: "span") %></td>
+          <% end %>
+          <td><%= button_to "Okundu", read_notification_path(notification), method: :patch %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p>Okunmamış bildiriminiz yok.</p>
+<% end %>

@@ -14,6 +14,25 @@ Rails.application.routes.draw do
 
   root "home#show"
 
+  resources :incidents, only: %i[ index show ] do
+    member do
+      post :acknowledge
+      post :resolve
+    end
+  end
+  resources :schedules, only: %i[ index show ] do
+    resources :overrides, only: %i[ create destroy ]
+  end
+  resources :unavailabilities, only: %i[ index create destroy ]
+  resources :notifications, only: :index do
+    member { patch :read }
+    collection { patch :read_all }
+  end
+
+  # Yalnızca manager
+  resources :services
+  resources :blackout_periods, except: :show
+
   namespace :api do
     namespace :v1 do
       resources :events, only: :create

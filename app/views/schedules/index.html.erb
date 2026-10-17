@@ -1,0 +1,20 @@
+<% content_for :title, "Takvimler" %>
+
+<h1>Nöbet takvimleri</h1>
+
+<table>
+  <thead>
+    <tr><th>Takvim</th><th>Üyeler (sırayla)</th><th>Rotasyon</th><th>Şu an nöbetçi</th></tr>
+  </thead>
+  <tbody>
+    <% @schedules.each do |schedule| %>
+      <% on_call = OnCall.for(schedule, at: Time.current) %>
+      <tr class="<%= "gap" unless on_call %>">
+        <td><%= link_to schedule.name, schedule %></td>
+        <td><%= schedule.members.map(&:name).join(", ") %></td>
+        <td><%= schedule.rotation_days %> gün</td>
+        <td><%= on_call&.name || "Boşluk" %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

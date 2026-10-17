@@ -52,6 +52,14 @@ class GapReportTest < ActiveSupport::TestCase
     assert_equal [ first, second ], @schedule.gaps(from: Time.current, to: 2.days.from_now)
   end
 
+  test "örnekleme tam saatlere hizalanır: saat başı olmayan from boşluk sınırlarını kaydırmaz" do
+    day_start = Time.zone.parse("2026-10-21 00:00")
+    @schedule.members.each { |user| user.unavailabilities.create!(starts_at: day_start, ends_at: day_start + 1.day) }
+
+    from = Time.zone.parse("2026-10-19 10:52")
+    assert_equal [ day_start...(day_start + 1.day) ], @schedule.gaps(from: from, to: from + 7.days)
+  end
+
   test "aralık sonuna kadar süren boşluk to'da kesilir" do
     @schedule.members.each { |user| user.unavailabilities.create!(starts_at: 1.hour.from_now, ends_at: 10.days.from_now) }
 

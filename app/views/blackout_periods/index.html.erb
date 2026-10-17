@@ -1,0 +1,29 @@
+<% content_for :title, "Akademik takvim" %>
+
+<h1>Akademik takvim</h1>
+<p>
+  Sınav haftası, bayram ve dönem arası gibi kapanma dönemleri. Bu dönemlerde ilgili kişiler
+  tüm nöbet takvimlerinde otomatik atlanır. İlk ve son gün dahildir.
+</p>
+<p><%= link_to "Yeni dönem", new_blackout_period_path %></p>
+
+<table>
+  <thead>
+    <tr><th>Ad</th><th>Tür</th><th>Kimlere</th><th>İlk gün</th><th>Son gün</th><th></th></tr>
+  </thead>
+  <tbody>
+    <% @blackout_periods.each do |period| %>
+      <tr>
+        <td><%= period.name %></td>
+        <td><%= enum_label(period, :kind) %></td>
+        <td><%= enum_label(period, :applies_to) %></td>
+        <td><%= format_date(period.starts_on) %></td>
+        <td><%= format_date(period.ends_on) %></td>
+        <td class="inline-actions">
+          <%= link_to "Düzenle", edit_blackout_period_path(period) %>
+          <%= button_to "Sil", blackout_period_path(period), method: :delete %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

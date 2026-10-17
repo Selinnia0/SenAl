@@ -1,0 +1,19 @@
+<% content_for :title, "Servisler" %>
+
+<h1>Servisler</h1>
+<p><%= link_to "Yeni servis", new_service_path %></p>
+
+<table>
+  <thead>
+    <tr><th>Servis</th><th>Eskalasyon politikası</th><th>"Gördüm" sıfırlama</th></tr>
+  </thead>
+  <tbody>
+    <% @services.each do |service| %>
+      <tr>
+        <td><%= link_to service.name, service %></td>
+        <td><%= service.escalation_policy.name %></td>
+        <td><%= service.ack_reset_minutes %> dk</td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

@@ -1,0 +1,20 @@
+<div style="overflow-x: auto">
+  <table>
+    <thead>
+      <tr><th>#</th><th>Başlık</th><th>Servis</th><th>Durum</th><th>Aciliyet</th><th>Atanan</th><th>Açılış</th></tr>
+    </thead>
+    <tbody>
+      <% incidents.each do |incident| %>
+        <tr>
+          <td><%= link_to incident.id, incident %></td>
+          <td><%= link_to incident.title, incident %></td>
+          <td><%= incident.service.name %></td>
+          <td><%= status_tag(incident) %></td>
+          <td><%= enum_label(incident, :urgency) %></td>
+          <td><%= incident.assignee&.name || "—" %></td>
+          <td><%= format_time(incident.triggered_at) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

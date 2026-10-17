@@ -1,0 +1,60 @@
+<% content_for :title, "Müsaitliğim" %>
+
+<h1>Müsaitliğim</h1>
+<p>İzninizi bir kez girin; tüm nöbet takvimlerinde otomatik olarak atlanırsınız.</p>
+
+<section>
+  <h2>İzinlerim</h2>
+  <% if @unavailabilities.any? %>
+    <table>
+      <thead>
+        <tr><th>Başlangıç</th><th>Bitiş</th><th>Sebep</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% @unavailabilities.each do |unavailability| %>
+          <tr>
+            <td><%= format_time(unavailability.starts_at) %></td>
+            <td><%= format_time(unavailability.ends_at) %></td>
+            <td><%= unavailability.reason %></td>
+            <td><%= button_to "Sil", unavailability_path(unavailability), method: :delete %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p>Kayıtlı izniniz yok.</p>
+  <% end %>
+</section>
+
+<section>
+  <h2>İzin ekle</h2>
+  <%= render "shared/errors", record: @unavailability %>
+  <%= form_with model: @unavailability, url: unavailabilities_path do |form| %>
+    <%= form.label :starts_at, "Başlangıç" %>
+    <%= form.datetime_local_field :starts_at, required: true %>
+
+    <%= form.label :ends_at, "Bitiş" %>
+    <%= form.datetime_local_field :ends_at, required: true %>
+
+    <%= form.label :reason, "Sebep" %>
+    <%= form.text_field :reason, placeholder: "ör. Yıllık izin" %>
+
+    <%= form.submit "Ekle" %>
+  <% end %>
+</section>
+
+<section>
+  <h2>Size uygulanan akademik kapanma dönemleri</h2>
+  <% if @blackout_periods.any? %>
+    <ul>
+      <% @blackout_periods.each do |period| %>
+        <li>
+          <%= period.name %> (<%= enum_label(period, :kind) %>):
+          <%= format_date(period.starts_on) %> – <%= format_date(period.ends_on) %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p>Yaklaşan dönem yok.</p>
+  <% end %>
+</section>

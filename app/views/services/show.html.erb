@@ -1,0 +1,32 @@
+<% content_for :title, @service.name %>
+
+<h1><%= @service.name %></h1>
+
+<dl>
+  <dt>Entegrasyon anahtarı</dt>
+  <dd><code><%= @service.integration_key %></code></dd>
+  <dt>Eskalasyon politikası</dt>
+  <dd>
+    <%= @service.escalation_policy.name %>:
+    <%= @service.escalation_policy.escalation_levels.includes(:schedule).map { |level|
+          "#{level.position + 1}. #{level.schedule.name} (#{level.timeout_minutes} dk)" }.join(" → ") %>
+    · <%= @service.escalation_policy.repeat_count %> tur tekrar
+  </dd>
+  <dt>"Gördüm" sıfırlama süresi</dt>
+  <dd><%= @service.ack_reset_minutes %> dakika</dd>
+</dl>
+
+<section data-controller="clipboard">
+  <h2>Örnek alarm</h2>
+  <pre data-clipboard-target="source">curl -X POST <%= api_v1_events_url %> \
+  -H "Authorization: Token token=<%= @service.integration_key %>" \
+  -H "Content-Type: application/json" \
+  -d '{"event_action":"trigger","dedup_key":"disk-full-db1","summary":"db1 disk %95","severity":"critical"}'</pre>
+  <button type="button" data-action="clipboard#copy">Kopyala</button>
+  <p><small>Çözmek için aynı <code>dedup_key</code> ile <code>"event_action":"resolve"</code> gönderin.</small></p>
+</section>
+
+<div class="inline-actions">
+  <%= link_to "Düzenle", edit_service_path(@service) %>
+  <%= button_to "Sil", service_path(@service), method: :delete %>
+</div>

@@ -1,0 +1,78 @@
+<% content_for :title, @schedule.name %>
+
+<h1><%= @schedule.name %></h1>
+<p>
+  Rotasyon: <%= @schedule.rotation_days %> gün · ilk devir: <%= format_time(@schedule.starts_at) %>.
+  İzinli kişiler ve akademik kapanma dönemleri otomatik atlanır.
+</p>
+
+<section>
+  <h2>Üyeler</h2>
+  <ol>
+    <% @memberships.each do |membership| %>
+      <li><%= membership.user.name %> (<%= enum_label(membership.user, :academic_role) %>)</li>
+    <% end %>
+  </ol>
+</section>
+
+<section>
+  <h2>Önümüzdeki <%= ScheduleCalendar::CALENDAR_DAYS %> gün</h2>
+  <div style="overflow-x: auto">
+    <table id="on-call-days">
+      <thead>
+        <tr><th>Gün</th><th>Nöbetçi(ler)</th><th>Durum</th></tr>
+      </thead>
+      <tbody>
+        <% @days.each do |day| %>
+          <tr class="<%= "gap" if day.gap %>">
+            <td><%= l(day.date, format: :weekday) %></td>
+            <td><%= day.users.map(&:name).join(", ").presence || "—" %></td>
+            <td><%= day.gap ? "Boşluk var" : "Tam" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Elle değişiklikler (override)</h2>
+  <% if @overrides.any? %>
+    <table>
+      <thead>
+        <tr><th>Kişi</th><th>Başlangıç</th><th>Bitiş</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% @overrides.each do |override| %>
+          <tr>
+            <td><%= override.user.name %></td>
+            <td><%= format_time(override.starts_at) %></td>
+            <td><%= format_time(override.ends_at) %></td>
+            <td>
+              <% if Current.user.manager? %>
+                <%= button_to "Sil", schedule_override_path(@schedule, override), method: :delete %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p>Aktif elle değişiklik yok.</p>
+  <% end %>
+
+  <h3>Elle değişiklik ekle</h3>
+  <%= render "shared/errors", record: @override %>
+  <%= form_with model: @override, url: schedule_overrides_path(@schedule) do |form| %>
+    <%= form.label :user_id, "Kişi" %>
+    <%= form.collection_select :user_id, @users, :id, :name %>
+
+    <%= form.label :starts_at, "Başlangıç" %>
+    <%= form.datetime_local_field :starts_at, required: true %>
+
+    <%= form.label :ends_at, "Bitiş" %>
+    <%= form.datetime_local_field :ends_at, required: true %>
+
+    <%= form.submit "Ekle" %>
+  <% end %>
+</section>

@@ -3,15 +3,7 @@
 <article>
   <h1>Kayıt ol</h1>
 
-  <% if @user.errors.any? %>
-    <div role="alert" class="flash-alert">
-      <ul>
-        <% @user.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
+  <%= render "shared/errors", record: @user %>
 
   <%= form_with model: @user, url: registration_path do |form| %>
     <%= form.label :name, "Ad soyad" %>
