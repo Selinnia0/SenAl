@@ -6,11 +6,13 @@
 
 | Faz | Madde | Durum / sebep |
 |---|---|---|
-| 0, 7 | **Canlı URL, canlıya alma** | Yapılmadı. Deploy platformu kararı insana bırakıldı ve ertelendi. README'de canlı URL yok. Canlıya alma gereksinimleri README'de "Canlıya alma gereksinimleri" bölümünde. |
-| 0 | Production veritabanı kararı (SQLite / PostgreSQL) | Verilmedi; platforma bağlı. Kod veritabanından bağımsız yazıldı (ör. `stale_acknowledged` SQL tarih aritmetiği kullanmıyor), ama PostgreSQL ile hiç çalıştırılmadı. |
-| 0 | **CI rozetinin yeşil olduğu** | Doğrulanmadı. GitHub'a push ertelendi; GitHub Actions hiç çalışmadı. CI'daki adımlar (rubocop, brakeman, bundler-audit, importmap audit, `bin/rails db:test:prepare test`) yalnızca yerelde geçti. `.ruby-version` 4.0.7; `ruby/setup-ruby`'nin bu sürümü kurabildiği doğrulanmadı. |
-| 7 | Canlıda `db:seed` | Yapılmadı (canlı ortam yok). Seed yerelde geliştirme ve test ortamında çalıştırıldı, tekrar çalıştırılabilir olduğu denendi. |
-| 7 | Canlıda Solid Queue ile "5 dk bekle, eskalasyonu gör" | Yapılmadı (canlı ortam yok). Eskalasyon mantığı `travel_to` testleriyle doğrulandı; `config/recurring.yml`'nin Solid Queue tarafından okunduğu ve zamanlamaların (`* * * * *`, `0 8 * * * Europe/Istanbul`) Fugit ile ayrıştırıldığı konsolda doğrulandı. Gerçek bir Solid Queue süreci hiç çalıştırılmadı. |
+| 0, 7 | **Canlı URL** | Henüz yok. Platform Render seçildi, altyapı hazır (`render.yaml`, Dockerfile, entrypoint); deploy'u insan yapacak (README "Canlıya alma"). |
+| 7 | Docker imajı | Yerelde derlenemedi (makinede Docker yok). CI'daki `docker` işi derliyor; sonucu insan GitHub'da görecek. |
+| 7 | Render'da gerçek çalışma | Doğrulanmadı. Yerine: production modu yerelde taşınabilir PostgreSQL 16 ile, `master.key` olmadan, Render'daki komutla (`bin/docker-entrypoint ./bin/rails server`, `SOLID_QUEUE_IN_PUMA=1`) çalıştırıldı: seed, 15 sayfa, API, zaman sıçraması, gerçek Solid Queue her dakikalık iş, ~127 MB bellek. |
+| 0 | **CI rozetinin yeşil olduğu** | Ajan doğrulamadı; push edildi, sonucu insan kontrol edecek. Yerelde `bin/ci` yeşil; yeni `production` işinin adımları yerel PostgreSQL'de birebir çalıştırıldı. `.ruby-version` 4.0.7; `ruby/setup-ruby`'nin bu sürümü kurabildiği ve `docker` işi doğrulanmadı. |
+| 7 | Canlıda `db:seed` | Entrypoint'te (`SEED_ON_BOOT=1`); yerelde production+PostgreSQL ile iki kez çalıştırıldı. Canlıda çalıştığı doğrulanmadı. |
+| 7 | Canlıda "5 dk bekle, eskalasyonu gör" | İnsan Zaman sıçraması sayfasından deneyecek. Yerelde gerçek Solid Queue'nun her dakikalık işi hem SQLite (geliştirme) hem PostgreSQL (production) üzerinde çalıştı. |
+| 7 | Render ücretsiz plan sınırları | Servis 15 dk boşta kalınca uyur (Solid Queue da durur); ücretsiz PostgreSQL 30 günde sona erer. Belgelerden doğrulandı, README'de. |
 | 7 | README'de forum ve Capterra bağlantıları | Eklenmedi. Ajan bağlantıları doğrulayamadığı için uydurmadı; insan ekleyecek. |
 | 7 | G2–G4, G5 | İnsan dolduracak (plan gereği). |
 | 6 | Panoda Turbo Stream ile canlı olay listesi | Yapılmadı (planda opsiyonel). Pano sayfa yenilenince güncellenir. |

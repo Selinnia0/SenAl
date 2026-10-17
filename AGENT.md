@@ -73,6 +73,13 @@ Ne yapılacağı: [docs/specs.md](docs/specs.md). Hangi sırayla: [docs/plan.md]
 | Yetki: `ManagerOnly` concern'i manager olmayanı `root`'a yönlendirir (403 yerine). Override'ı herkes ekler, yalnızca manager siler. | Spec yalnızca servis ve akademik takvim için yetki tanımlıyor; override silme kuralı spec'te yok. |
 | `Schedule#on_call_samples` eklendi; `gaps` ve takvim sayfasının günlük tablosu (`on_call_days`) aynı örneklemeyi kullanır. İlk örnek `from` anında, sonrakiler tam saat başında. | Tablo ile boşluk raporu hiçbir zaman çelişmesin; saat başı olmayan `from` boşluk sınırlarını kaydırmasın (testli). |
 | Pano ayrıca önümüzdeki 7 günün boşluklarını gösterir. | Adaptasyonun canlı demoda görünmesi için (spec §9 "boşluk uyarısını göster"). |
+| **Canlı: Render (ücretsiz), PostgreSQL yalnızca `production`'da**; geliştirme/test SQLite. `sqlite3` gem'i development/test grubunda, `pg` production grubunda. | Plan Faz 0 kuralı: platform kalıcı disk sunmuyorsa production'da PostgreSQL. Render free'de kalıcı disk yok. Vercel Rails ve kalıcı arka plan işi çalıştıramadığı için elendi. |
+| Solid Queue tabloları ana veritabanında (`db/migrate/*_create_solid_queue_tables.rb`, içerik `db/queue_schema.rb` ile aynı); ayrı `queue` veritabanı yok. `db/queue_schema.rb`, `cache_schema.rb`, `cable_schema.rb`, `config/cache.yml` silindi. | Render free'de tek PostgreSQL. Aynı veritabanına işaret eden çoklu `database.yml` girdisinde `db:prepare` şemaları yüklemiyor. |
+| `solid_cache` ve `solid_cable` gem'leri kaldırıldı; production'da `cache_store :memory_store`, Action Cable `async`. | Tek süreç; uygulama Action Cable yayını kullanmıyor. Ek tablo/veritabanı gerekmesin. |
+| Solid Queue Puma içinde `solid_queue_mode :async` (`SOLID_QUEUE_IN_PUMA=1`); geliştirmede de (`Procfile.dev`, `config.active_job.queue_adapter = :solid_queue`). | Free plan 512 MB: ayrı süreç fork etmesin (yerelde ölçüm ~127 MB). Geliştirme canlıyla aynı davransın. |
+| Render'da Thruster yerine doğrudan `./bin/rails server` (`dockerCommand`). | Render `PORT`'u (10000) dinleyen tek süreç bekliyor; Thruster'ın ayrı port düzeni gereksiz. |
+| `RAILS_FORCE_SSL` (varsayılan `1`) `assume_ssl`/`force_ssl`'i yönetir; `/up` yönlendirmeden muaf. | Render TLS'i önde sonlandırır; production yerelde HTTP ile denenebilsin. |
+| **`TimeSkip` (demo aracı)**: açık olayların zamanlarını `update_columns` ile geriye kaydırıp gerçek süpürme metotlarını çalıştırır. Yalnızca manager; production'da `TIME_SKIP_ENABLED=1` ile. | İnsan isteği: eskalasyonu arayüzden beklemeden test etmek. Gerçek saati değiştirmek global `Time` yaması (yasak) ya da iş parçacığı güvenli olmayan `travel_to` gerektirirdi. `update_columns` bilinçli: bu bir domain geçişi değil, zaman kaydırması. |
 | Kayıt sayfası (`/registration/new`) eklendi; spec'te yok. | İnsan isteği. Kayıt olan herkes `responder` olur (`role` izinli parametrelerde yok, testli); `manager` yalnızca seed/konsol ile atanır. |
 
 ## 6. Komutlar
@@ -98,6 +105,8 @@ grep -rnE "default_scope|method_missing|Time\.now|Date\.today|\.(resolved|acknow
 | Z5 boşluk | `app/models/schedule.rb` (`on_call_samples`, `gaps`, `on_call_days`), `app/models/gap_report.rb` |
 | API | `app/controllers/api/v1/events_controller.rb` (ince) → `app/models/event_ingestor.rb` |
 | Arka plan işleri | `app/jobs/escalation_sweep_job.rb`, `gap_report_job.rb`, `config/recurring.yml` |
+| Zaman sıçraması (demo) | `app/models/time_skip.rb`, `app/controllers/time_skips_controller.rb` |
+| Canlıya alma | `render.yaml`, `Dockerfile`, `bin/docker-entrypoint`, `config/database.yml` (production), `config/puma.rb` |
 | Yetki | `app/controllers/concerns/manager_only.rb` |
 | Türkçe etiketler | `config/locales/tr.yml` (`enums.*`), `app/helpers/application_helper.rb` |
 | Kural → dosya:satır tablosu | `docs/G1.md` |
@@ -110,7 +119,10 @@ grep -rnE "default_scope|method_missing|Time\.now|Date\.today|\.(resolved|acknow
 - **Ruby keyword argümanları:** `def m(payload, key:)` iken `m a: 1` çağrısı hash'i anahtar argüman sayar. Yardımcıda `def m(key:, **payload)` kullan.
 - **`db:seed:replant` test veritabanını kirletir** (fixture'ı olmayan tablolar temizlenmez) → `bin/rails db:test:prepare`.
 - **Solid Queue geliştirmede kurulu değil** (yalnızca production `queue` veritabanı). `recurring.yml` doğrulamak için `SolidQueue::Configuration.new.send(:recurring_tasks_config)` (veritabanına dokunmaz).
-- **Canlıda Solid Queue çalışmazsa eskalasyon hiç olmaz.** `SOLID_QUEUE_IN_PUMA=1` veya ayrı `bin/jobs`.
+- **Canlıda Solid Queue çalışmazsa eskalasyon hiç olmaz.** `SOLID_QUEUE_IN_PUMA=1` (Render'da açık).
+- **`bin/rails runner` çıktısını değişkene alırken dikkat:** libvips yerelde kurulu değilse uyarı stdout'a yazılır ve değere karışır (ör. `integration_key`).
+- **Production'ı yerelde denemek:** `RAILS_ENV=production DATABASE_URL=postgres://... SECRET_KEY_BASE=... RAILS_FORCE_SSL=0`; `assets:precompile` sonrası `public/assets`'i sil, yoksa geliştirme eski derlenmiş dosyaları sunar.
+- **Render belgeleri:** `autoDeploy` kullanımdan kalktı → `autoDeployTrigger`. Ücretsiz PostgreSQL 30 günde sona erer.
 
 ## 9. Çalışma kuralları (`docs/plan.md`'den)
 
