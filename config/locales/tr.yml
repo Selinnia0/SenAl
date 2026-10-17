@@ -43,6 +43,13 @@ tr:
         assistants: Yalnızca asistanlar
         everyone: Herkes
 
+  activemodel:
+    models:
+      time_skip: Zaman sıçraması
+    attributes:
+      time_skip:
+        minutes: Süre (dakika)
+
   activerecord:
     models:
       user: Kullanıcı

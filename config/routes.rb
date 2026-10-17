@@ -32,6 +32,7 @@ Rails.application.routes.draw do
   # Yalnızca manager
   resources :services
   resources :blackout_periods, except: :show
+  resource :time_skip, only: %i[ new create ] # demo aracı, bkz. TimeSkip
 
   namespace :api do
     namespace :v1 do

@@ -34,6 +34,9 @@
             <% if Current.user.manager? %>
               <li><%= link_to "Servisler", services_path %></li>
               <li><%= link_to "Akademik takvim", blackout_periods_path %></li>
+              <% if TimeSkip.enabled? %>
+                <li><%= link_to "Zaman sıçraması", new_time_skip_path %></li>
+              <% end %>
             <% end %>
           </ul>
           <ul>
