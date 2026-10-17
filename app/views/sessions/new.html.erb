@@ -1,0 +1,17 @@
+<% content_for :title, "Giriş" %>
+
+<article>
+  <h1>Giriş yap</h1>
+
+  <%= form_with url: session_path do |form| %>
+    <%= form.label :email_address, "E-posta adresi" %>
+    <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", value: params[:email_address] %>
+
+    <%= form.label :password, "Şifre" %>
+    <%= form.password_field :password, required: true, autocomplete: "current-password", maxlength: 72 %>
+
+    <%= form.submit "Giriş yap" %>
+  <% end %>
+
+  <%= link_to "Şifremi unuttum", new_password_path %>
+</article>
