@@ -1,0 +1,12 @@
+tr:
+  activerecord:
+    models:
+      user: Kullanıcı
+    attributes:
+      user:
+        name: Ad soyad
+        email_address: E-posta adresi
+        password: Şifre
+        password_confirmation: Şifre (tekrar)
+        role: Rol
+        academic_role: Akademik rol

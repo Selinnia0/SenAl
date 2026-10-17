@@ -55,6 +55,7 @@ Ne yapılacağı: [docs/specs.md](docs/specs.md). Hangi sırayla: [docs/plan.md]
 | `rails-i18n` gem'i eklendi. | Varsayılan locale `:tr`; tarih ve doğrulama mesajlarının Türkçe çevirisi için. |
 | `users.name` sütunu `default: ""` ile eklendi. | SQLite, mevcut tabloya `NOT NULL` sütun eklerken varsayılan ister. Boş olmama kuralı `validates :name, presence: true` ile modelde. |
 | CI'dan `system-test` işi çıkarıldı. | Projede sistem testi yok; gereksiz Chrome kurulumu CI'ı yavaşlatır ve kırılganlaştırır. |
+| Kayıt sayfası (`/registration/new`) eklendi; spec'te yok. | İnsan isteği. Kayıt olan herkes `responder` olur (`role` izinli parametrelerde yok, testli); `manager` yalnızca seed/konsol ile atanır. |
 
 ## 6. Komutlar
 

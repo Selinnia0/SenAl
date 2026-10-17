@@ -1,0 +1,36 @@
+<% content_for :title, "Kayıt ol" %>
+
+<article>
+  <h1>Kayıt ol</h1>
+
+  <% if @user.errors.any? %>
+    <div role="alert" class="flash-alert">
+      <ul>
+        <% @user.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= form_with model: @user, url: registration_path do |form| %>
+    <%= form.label :name, "Ad soyad" %>
+    <%= form.text_field :name, required: true, autofocus: true, autocomplete: "name" %>
+
+    <%= form.label :email_address, "E-posta adresi" %>
+    <%= form.email_field :email_address, required: true, autocomplete: "username" %>
+
+    <%= form.label :academic_role, "Akademik rol" %>
+    <%= form.select :academic_role, [ [ "Personel", "staff" ], [ "Asistan", "assistant" ] ] %>
+
+    <%= form.label :password, "Şifre" %>
+    <%= form.password_field :password, required: true, autocomplete: "new-password", maxlength: 72 %>
+
+    <%= form.label :password_confirmation, "Şifre (tekrar)" %>
+    <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password", maxlength: 72 %>
+
+    <%= form.submit "Kayıt ol" %>
+  <% end %>
+
+  <%= link_to "Zaten hesabım var, giriş yap", new_session_path %>
+</article>
