@@ -17,8 +17,46 @@ class Incident < ApplicationRecord
   enum :urgency, { high: 0, low: 1 }, validate: true
 
   validates :title, :dedup_key, :triggered_at, presence: true
+  validates :dedup_key, uniqueness: { scope: :service_id, conditions: -> { not_resolved } }, unless: :resolved?
   # Savunma katmanı: ham update(status:) veya enum bang metotları da geçiş kuralına tabi.
   validate :status_transition_allowed, on: :update
+
+  # Yeni olay açar ve seviye 0'ı bildirir. Tekilleştirme EventIngestor'da.
+  def self.trigger!(service:, title:, dedup_key:, urgency:)
+    transaction do
+      incident = create!(service: service, title: title, dedup_key: dedup_key, urgency: urgency,
+                         status: :triggered, triggered_at: Time.current)
+      incident.record_event!("triggered")
+      incident.notify_current_level!
+      incident
+    end
+  end
+
+  # Bildirim mantığının tek yeri: şu anki seviyenin nöbetçisini bulur, bildirir, assignee atar,
+  # high ise bir sonraki eskalasyon anını ayarlar. Callback değil, açıkça çağrılır.
+  def notify_current_level!
+    level = current_escalation_level
+    on_call = level && OnCall.for(level.schedule, at: Time.current)
+
+    transaction do
+      if on_call
+        notifications.create!(user: on_call)
+        self.assignee = on_call
+        record_event!("notified", details: { user_id: on_call.id, user_name: on_call.name,
+                                             level: current_level, round: escalation_round })
+      end
+      self.escalate_at = high? && level ? Time.current + level.timeout_minutes.minutes : nil
+      save!
+    end
+  end
+
+  def current_escalation_level
+    service.escalation_policy.escalation_levels.find_by(position: current_level)
+  end
+
+  def record_event!(kind, user: nil, details: {})
+    incident_events.create!(kind: kind, user: user, details: details, occurred_at: Time.current)
+  end
 
   def acknowledge!(by:)
     transition_to!(:acknowledged, user: by) do
@@ -65,7 +103,7 @@ class Incident < ApplicationRecord
         self.status = new_status
         yield
         save!
-        incident_events.create!(kind: kind, user: user, occurred_at: Time.current)
+        record_event!(kind, user: user)
       end
     end
 

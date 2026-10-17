@@ -32,7 +32,24 @@ _(Faz 6'da seed ile eklenecek.)_
 
 ## Örnek alarm (`curl`)
 
-_(Faz 3'te eklenecek.)_
+`<INTEGRATION_KEY>` servisin entegrasyon anahtarıdır (Servisler sayfasında görünür). Yerelde `http://localhost:3000`.
+
+```sh
+# Olay aç (severity: critical | error → yüksek aciliyet, eskale edilir; warning | info | yok → düşük)
+curl -X POST http://localhost:3000/api/v1/events \
+  -H "Authorization: Token token=<INTEGRATION_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{"event_action":"trigger","dedup_key":"disk-full-db1","summary":"db1 disk %95","severity":"critical"}'
+
+# Üstlen / çöz
+curl -X POST http://localhost:3000/api/v1/events \
+  -H "Authorization: Token token=<INTEGRATION_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{"event_action":"resolve","dedup_key":"disk-full-db1"}'
+```
+
+Yanıtlar: `202` `{"status":"triggered|deduplicated|acknowledged|resolved","incident_id":1,"dedup_key":"..."}` ·
+`401` geçersiz anahtar · `404` açık olay yok · `409` izin verilmeyen geçiş · `422` bozuk gövde.
 
 ## Adaptasyonun kaynakları
 

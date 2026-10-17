@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_212820) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_17_213147) do
   create_table "escalation_levels", force: :cascade do |t|
     t.integer "escalation_policy_id", null: false
     t.integer "position", null: false
@@ -60,6 +60,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_212820) do
     t.index ["assignee_id"], name: "index_incidents_on_assignee_id"
     t.index ["dedup_key"], name: "index_incidents_on_dedup_key"
     t.index ["escalate_at"], name: "index_incidents_on_escalate_at"
+    t.index ["service_id", "dedup_key"], name: "index_incidents_on_open_dedup_key", unique: true, where: "status <> 2"
     t.index ["service_id", "dedup_key"], name: "index_incidents_on_service_id_and_dedup_key"
     t.index ["service_id"], name: "index_incidents_on_service_id"
   end

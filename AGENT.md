@@ -55,6 +55,9 @@ Ne yapılacağı: [docs/specs.md](docs/specs.md). Hangi sırayla: [docs/plan.md]
 | `rails-i18n` gem'i eklendi. | Varsayılan locale `:tr`; tarih ve doğrulama mesajlarının Türkçe çevirisi için. |
 | `users.name` sütunu `default: ""` ile eklendi. | SQLite, mevcut tabloya `NOT NULL` sütun eklerken varsayılan ister. Boş olmama kuralı `validates :name, presence: true` ile modelde. |
 | CI'dan `system-test` işi çıkarıldı. | Projede sistem testi yok; gereksiz Chrome kurulumu CI'ı yavaşlatır ve kırılganlaştırır. |
+| API: açık olayda izin verilmeyen geçiş (ör. zaten üstlenilmiş olaya `acknowledge`) `409 Conflict` döner; bilinmeyen `severity` `422` döner. | `specs.md` §6 bu iki durumu tanımlamıyor; "sessizce geçmez" ilkesine uygun açık hata seçildi. |
+| `incidents` üzerinde kısmi benzersiz indeks (`service_id, dedup_key WHERE status <> 2`). | "Açık olay en fazla 1" kuralı yarış durumunda da veritabanı düzeyinde korunsun diye. |
+| `notified` olayında `user_id` boş; bildirilen kişi `details["user_id"]` içinde. | `IncidentEvent.user` "eylemi yapan kişi"dir; bildirimi sistem yapar. |
 | Kayıt sayfası (`/registration/new`) eklendi; spec'te yok. | İnsan isteği. Kayıt olan herkes `responder` olur (`role` izinli parametrelerde yok, testli); `manager` yalnızca seed/konsol ile atanır. |
 
 ## 6. Komutlar

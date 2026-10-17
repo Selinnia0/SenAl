@@ -13,4 +13,10 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   root "home#show"
+
+  namespace :api do
+    namespace :v1 do
+      resources :events, only: :create
+    end
+  end
 end
