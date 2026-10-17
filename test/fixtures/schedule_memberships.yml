@@ -1,0 +1,21 @@
+# Takvimler 2026-10-05 10:00 (Istanbul) başlar, 7 günlük rotasyon.
+# 2026-10-19 10:00 çapasında slot = 2 → her iki takvimde de 0. sıradaki kişi nöbetçi.
+primary_alice:
+  schedule: primary
+  user: alice
+  position: 0
+
+primary_bob:
+  schedule: primary
+  user: bob
+  position: 1
+
+secondary_bob:
+  schedule: secondary
+  user: bob
+  position: 0
+
+secondary_manager:
+  schedule: secondary
+  user: manager
+  position: 1

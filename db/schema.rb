@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_212403) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_17_212820) do
   create_table "escalation_levels", force: :cascade do |t|
     t.integer "escalation_policy_id", null: false
     t.integer "position", null: false
@@ -74,6 +74,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_212403) do
     t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
+  create_table "overrides", force: :cascade do |t|
+    t.integer "schedule_id", null: false
+    t.integer "user_id", null: false
+    t.datetime "starts_at", null: false
+    t.datetime "ends_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["schedule_id", "starts_at", "ends_at"], name: "index_overrides_on_schedule_id_and_starts_at_and_ends_at"
+    t.index ["schedule_id"], name: "index_overrides_on_schedule_id"
+    t.index ["user_id"], name: "index_overrides_on_user_id"
+  end
+
+  create_table "schedule_memberships", force: :cascade do |t|
+    t.integer "schedule_id", null: false
+    t.integer "user_id", null: false
+    t.integer "position", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["schedule_id", "position"], name: "index_schedule_memberships_on_schedule_id_and_position", unique: true
+    t.index ["schedule_id", "user_id"], name: "index_schedule_memberships_on_schedule_id_and_user_id", unique: true
+    t.index ["schedule_id"], name: "index_schedule_memberships_on_schedule_id"
+    t.index ["user_id"], name: "index_schedule_memberships_on_user_id"
+  end
+
   create_table "schedules", force: :cascade do |t|
     t.string "name", null: false
     t.datetime "starts_at", null: false
@@ -122,6 +146,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_212403) do
   add_foreign_key "incidents", "users", column: "assignee_id"
   add_foreign_key "notifications", "incidents"
   add_foreign_key "notifications", "users"
+  add_foreign_key "overrides", "schedules"
+  add_foreign_key "overrides", "users"
+  add_foreign_key "schedule_memberships", "schedules"
+  add_foreign_key "schedule_memberships", "users"
   add_foreign_key "services", "escalation_policies"
   add_foreign_key "sessions", "users"
 end
