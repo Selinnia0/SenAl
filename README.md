@@ -4,11 +4,11 @@
 
 Nöbet ve olay müdahale (on-call & incident response) uygulaması. Alarm gelir → nöbetçiye bildirilir → nöbetçi "Gördüm" der → sorun "Çözüldü" olur. "Gördüm" denmezse bir üst seviyeye eskale edilir.
 
-**Adaptasyon:** Üniversite BT birimleri ve araştırma laboratuvarları için müsaitlik farkındalıklı nöbet — kişisel izinler ve akademik takvim (sınav haftası, bayram, dönem arası) nöbet rotasyonunda otomatik atlanır, kapanamayan boşluklar önceden yöneticiye bildirilir.
+**Adaptasyon (kim, neden, nasıl):** Üniversite BT birimleri ve araştırma laboratuvarları, nöbetçi asistanlar sınav haftasında veya izindeyken her takvimi tek tek elle düzeltmek zorunda kalmasın diye; kişi iznini bir kez girer, akademik takvim (sınav haftası, bayram, dönem arası) bir kez tanımlanır ve rotasyon bu kişileri **tüm** takvimlerde otomatik atlar, kapanamayan boşluklar önceden yöneticiye bildirilir.
 
 **İlham kaynağı:** PagerDuty.
 
-- Canlı URL: _(Faz 0 deploy kararından sonra eklenecek)_
+- Canlı URL: _(henüz yok — deploy platformu kararı bekleniyor; bkz. [docs/yapamadiklarim.md](docs/yapamadiklarim.md))_
 - Ayrıntılı tanım: [docs/specs.md](docs/specs.md) · Uygulama planı: [docs/plan.md](docs/plan.md) · Ajan kuralları: [AGENT.md](AGENT.md)
 
 ## Kurulum
@@ -70,6 +70,15 @@ curl -X POST http://localhost:3000/api/v1/events \
 Yanıtlar: `202` `{"status":"triggered|deduplicated|acknowledged|resolved","incident_id":1,"dedup_key":"..."}` ·
 `401` geçersiz anahtar · `404` açık olay yok · `409` izin verilmeyen geçiş · `422` bozuk gövde.
 
+## Canlıya alma gereksinimleri
+
+- `RAILS_MASTER_KEY` ortam değişkeni (`config/master.key`, repoda yok).
+- **Solid Queue mutlaka çalışmalı**, yoksa eskalasyon (her dakika) ve boşluk raporu (her gün 08:00) hiç tetiklenmez:
+  tek süreçte `SOLID_QUEUE_IN_PUMA=1` ile Puma içinde, ya da ayrı bir `bin/jobs` süreci.
+- Veritabanı: kalıcı disk varsa SQLite (`storage/`); yoksa yalnızca `production` için PostgreSQL'e geçilmeli.
+- İlk kurulumdan sonra `bin/rails db:seed`.
+
 ## Adaptasyonun kaynakları
 
-_(Forum ve Capterra bağlantıları insan tarafından eklenecek.)_
+- PagerDuty topluluk forumu: izin/tatilde kişiyi her takvimden tek tek override ile çıkarma şikâyeti ve destek ekibinin bunun tek yol olduğunu doğrulaması — _(bağlantı insan tarafından eklenecek)_
+- Capterra: takvim özelliğiyle ilgili yorumlar — _(bağlantı insan tarafından eklenecek)_
