@@ -1,13 +1,17 @@
 #!/bin/bash -e
 
-# If running the rails server then create or migrate existing database
-if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+# Sunucu başlatılıyorsa önce veritabanını hazırla. Komut exec biçiminde ("./bin/rails" "server")
+# ya da kabukla ("sh" "-c" "./bin/rails server") gelebilir; ikisini de yakala. Render'da bu betik
+# hem imajın ENTRYPOINT'i hem dockerCommand olarak çağrılabilir: hazırlık yalnızca bir kez yapılır.
+if [[ "$*" == *"rails server"* ]] && [ -z "${SENAL_DB_PREPARED}" ]; then
   ./bin/rails db:prepare
 
   # Demo verisi (db/seeds.rb tekrar çalıştırılabilir). Render'da SEED_ON_BOOT=1.
   if [ "${SEED_ON_BOOT:-0}" == "1" ]; then
     ./bin/rails db:seed
   fi
+
+  export SENAL_DB_PREPARED=1
 fi
 
 exec "${@}"

@@ -150,12 +150,43 @@ jobs:
           curl -sf -o /dev/null http://localhost:3000/session/new
           grep -q "Started Scheduler" server.log || (cat server.log; exit 1)
 
-  # Render'ın kullanacağı imaj derlenebiliyor mu?
+  # Render'ın yaptığının aynısı: imajı derle, önceden oluşturulmuş BOŞ bir PostgreSQL'e karşı imajın
+  # kendi ENTRYPOINT/CMD'siyle (komut vermeden) çalıştır. Entrypoint db:prepare + seed yapmazsa
+  # Solid Queue "solid_queue_recurring_tasks does not exist" ile düşer ve bu iş kırmızı olur.
   docker:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: senal
+        ports:
+          - 5432:5432
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
 
       - name: Build production image
         run: docker build -t senal .
+
+      - name: Run image like Render (empty database, default command)
+        run: |
+          docker run -d --name senal --network host \
+            -e DATABASE_URL=postgres://postgres:postgres@localhost:5432/senal \
+            -e SECRET_KEY_BASE=$(openssl rand -hex 64) \
+            -e PORT=10000 -e SOLID_QUEUE_IN_PUMA=1 -e SEED_ON_BOOT=1 -e TIME_SKIP_ENABLED=1 \
+            -e RAILS_FORCE_SSL=0 \
+            senal
+          for i in $(seq 1 60); do curl -sf http://localhost:10000/up && break; sleep 2; done
+          sleep 5
+          docker logs senal > container.log 2>&1
+          curl -sf http://localhost:10000/up || (cat container.log; exit 1)
+          curl -sf -o /dev/null http://localhost:10000/session/new || (cat container.log; exit 1)
+          grep -q "Seed tamam" container.log || (cat container.log; exit 1)
+          grep -q "Started Scheduler" container.log || (cat container.log; exit 1)
+          if grep -q "UndefinedTable" container.log; then cat container.log; exit 1; fi

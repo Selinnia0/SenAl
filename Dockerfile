@@ -4,7 +4,7 @@
 # Production imajı (Render bu dosyayla derler, bkz. render.yaml). Elle denemek için:
 # docker build -t senal .
 # docker run -p 3000:3000 -e PORT=3000 -e DATABASE_URL=postgres://... -e SECRET_KEY_BASE=$(openssl rand -hex 64) \
-#   -e RAILS_FORCE_SSL=0 -e SOLID_QUEUE_IN_PUMA=1 senal ./bin/rails server
+#   -e RAILS_FORCE_SSL=0 -e SOLID_QUEUE_IN_PUMA=1 senal
 
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 
@@ -73,6 +73,6 @@ COPY --chown=rails:rails --from=build /rails /rails
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Start server via Thruster by default, this can be overwritten at runtime
-EXPOSE 80
-CMD ["./bin/thrust", "./bin/rails", "server"]
+# Doğrudan Puma: PORT'u dinler (Render'da 10000). Entrypoint önce db:prepare (+ SEED_ON_BOOT=1 ise db:seed).
+EXPOSE 3000
+CMD ["./bin/rails", "server"]

@@ -17,9 +17,10 @@ services:
     plan: free
     region: frankfurt
     dockerfilePath: ./Dockerfile
-    # Thruster yerine doğrudan Puma: Render'ın verdiği PORT'u dinler. Entrypoint önce
-    # db:prepare, SEED_ON_BOOT=1 ise db:seed çalıştırır.
-    dockerCommand: ./bin/rails server
+    # Entrypoint açıkça çağrılır: Render dockerCommand ile imajın ENTRYPOINT'ini ezse de ezmese de
+    # db:prepare (+ SEED_ON_BOOT=1 ise db:seed) sunucudan önce bir kez çalışır. Önceki sürümde
+    # dockerCommand "./bin/rails server" idi ve hazırlık atlandı (solid_queue_recurring_tasks yok).
+    dockerCommand: ./bin/docker-entrypoint ./bin/rails server
     healthCheckPath: /up
     # main'e her push'ta, GitHub'daki CI kontrolleri geçerse deploy et.
     autoDeployTrigger: checksPass
