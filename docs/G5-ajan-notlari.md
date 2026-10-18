@@ -4,7 +4,11 @@
 
 ## İnsan tarafından düzeltilen
 
-Bu oturumda insan ajanın bir uydurmasını veya hatalı iddiasını düzeltmedi. İnsanın istekleri (kayıt sayfası, push/deploy'un ertelenmesi) kapsam kararlarıydı.
+| Ne oldu | Ajanın iddiası | Gerçek | Düzeltme |
+|---|---|---|---|
+| İlk Render deploy'u `PG::UndefinedTable: relation "solid_queue_recurring_tasks" does not exist` ile düştü; hatayı insan bildirdi. | "Prod ready"; production yerelde PostgreSQL ile doğrulandı. | Yerel doğrulama `bin/docker-entrypoint ./bin/rails server` ile yapılmıştı; Render ise `dockerCommand: ./bin/rails server` ile entrypoint'i atladı (ya da komutu kabukla verdi), `db:prepare` hiç çalışmadı. Ajan yerel testte Render'ın komutu nasıl çağırdığını değil, kendi varsaydığı çağrıyı denedi; CI'daki `production` işi de `db:prepare`'i elle çalıştırdığı için açığı göremedi. | Hata yerelde birebir üretildi; entrypoint sağlamlaştırıldı, `dockerCommand` entrypoint'i açıkça çağırıyor, 5 çağrı biçimi boş veritabanında denendi; CI `docker` işi imajı Render gibi çalıştırıyor. |
+
+Bundan önce insan ajanın bir uydurmasını düzeltmedi; istekleri (kayıt sayfası, push/deploy zamanlaması, zaman sıçraması) kapsam kararlarıydı.
 
 ## Ajanın kendi yakaladığı hatalar
 

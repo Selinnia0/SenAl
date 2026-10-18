@@ -113,6 +113,13 @@ Altyapı repoda hazır: [`render.yaml`](render.yaml) (Blueprint), [`Dockerfile`]
 Sonraki her `main` push'unda CI geçerse Render otomatik deploy eder (`autoDeployTrigger: checksPass`).
 CI kırmızıysa deploy olmaz; Render panelindeki **Manual Deploy** ile elle tetiklenebilir.
 
+### Sorun giderme
+
+- **`PG::UndefinedTable: relation "solid_queue_recurring_tasks" does not exist`**: veritabanı hazırlanmadan sunucu açılmış.
+  Servisin **Settings → Docker Command** değeri `./bin/docker-entrypoint ./bin/rails server` olmalı (Blueprint senkronize
+  olunca kendiliğinden gelir; gelmediyse elle yaz) → **Manual Deploy → Deploy latest commit**. Loglarda `Seed tamam`
+  ve `Started Scheduler` görünmeli.
+
 ### Ortam değişkenleri (`render.yaml`)
 
 | Değişken | Değer | Ne işe yarar |
