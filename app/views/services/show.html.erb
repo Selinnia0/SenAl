@@ -16,6 +16,23 @@
   <dd><%= @service.ack_reset_minutes %> dakika</dd>
 </dl>
 
+<section>
+  <h2>Deneme alarmı gönder</h2>
+  <p><small>Terminal açmadan alarm göndermek için. API ile aynı kurallar işler (aynı <code>dedup_key</code> → yeni olay açılmaz).</small></p>
+  <%= form_with scope: :alert, url: test_alert_service_path(@service) do |form| %>
+    <%= form.label :summary, "Başlık" %>
+    <%= form.text_field :summary, required: true, value: "db1 disk %95" %>
+
+    <%= form.label :severity, "Önem (critical/error → yüksek aciliyet, eskale edilir)" %>
+    <%= form.select :severity, [ [ "critical (yüksek)", "critical" ], [ "error (yüksek)", "error" ], [ "warning (düşük)", "warning" ], [ "info (düşük)", "info" ] ] %>
+
+    <%= form.label :dedup_key, "Tekilleştirme anahtarı (boşsa rastgele)" %>
+    <%= form.text_field :dedup_key, placeholder: "ör. disk-full-db1" %>
+
+    <%= form.submit "Alarm gönder" %>
+  <% end %>
+</section>
+
 <section data-controller="clipboard">
   <h2>Örnek alarm</h2>
   <pre data-clipboard-target="source">curl -X POST <%= api_v1_events_url %> \

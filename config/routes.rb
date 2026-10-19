@@ -30,7 +30,9 @@ Rails.application.routes.draw do
   end
 
   # Yalnızca manager
-  resources :services
+  resources :services do
+    member { post :test_alert } # arayüzden deneme alarmı (API ile aynı yol: EventIngestor)
+  end
   resources :blackout_periods, except: :show
   resource :time_skip, only: %i[ new create ] # demo aracı, bkz. TimeSkip
 

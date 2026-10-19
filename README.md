@@ -47,7 +47,8 @@ yarından başlayan bir vize haftası (yalnızca asistanlar) ve 2 gün sonrası 
 
 ### Demo akışı
 
-1. Yönetici ile gir → **Servisler → Öğrenci Bilgi Sistemi** → `curl` komutunu kopyala ve çalıştır.
+1. Yönetici ile gir → **Servisler → Öğrenci Bilgi Sistemi** → `curl` komutunu kopyala ve çalıştır
+   (ya da aynı sayfadaki **Deneme alarmı gönder** formunu kullan; API ile aynı kurallar işler).
 2. **Pano**'da olay görünür; nöbetçi (ör. Ayşe) **Bildirimlerim**'de görür → olay detayında **Gördüm** → **Çözüldü**.
 3. "Gördüm" denmezse 5 dk sonra Laboratuvar nöbetçisine eskale edilir (Solid Queue, her dakika).
    Beklemek yerine **Zaman sıçraması** sayfasından ileri sarın (aşağıda).
