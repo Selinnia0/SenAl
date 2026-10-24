@@ -55,21 +55,21 @@ ActiveRecord::Base.transaction do
   zeynep.unavailabilities.where(reason: "Konferans (demo)").destroy_all
   zeynep.unavailabilities.create!(starts_at: gap_day, ends_at: gap_day + 1.day, reason: "Konferans (demo)")
 
-  # --- Farklı durumlarda 3 olay (yalnızca ilk çalıştırmada açılır) ---
-  unless service.incidents.exists?
-    Incident.trigger!(service: service, title: "Kayıt sayfası yanıt vermiyor",
+  # --- Farklı durumlarda 3 alarm (yalnızca ilk çalıştırmada açılır) ---
+  unless service.alerts.exists?
+    Alert.trigger!(service: service, title: "Kayıt sayfası yanıt vermiyor",
                       dedup_key: "kayit-timeout", urgency: :high)
 
-    Incident.trigger!(service: service, title: "Veritabanı diski %90 dolu",
+    Alert.trigger!(service: service, title: "Veritabanı diski %90 dolu",
                       dedup_key: "db-disk-90", urgency: :low)
             .acknowledge!(by: ayse)
 
-    Incident.trigger!(service: service, title: "SSL sertifikası yakında doluyor",
+    Alert.trigger!(service: service, title: "SSL sertifikası yakında doluyor",
                       dedup_key: "ssl-expiry", urgency: :low)
-            .tap { |incident| incident.acknowledge!(by: burak) }
+            .tap { |alert| alert.acknowledge!(by: burak) }
             .resolve!(by: burak)
   end
 
-  puts "Seed tamam: #{User.count} kullanıcı, #{Schedule.count} takvim, #{Incident.count} olay. " \
+  puts "Seed tamam: #{User.count} kullanıcı, #{Schedule.count} takvim, #{Alert.count} alarm. " \
        "Demo şifresi README'de. Yönetici: #{manager.email_address}"
 end

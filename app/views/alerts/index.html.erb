@@ -1,0 +1,18 @@
+<% content_for :title, "Alarmlar" %>
+
+<h1>Alarmlar</h1>
+
+<nav>
+  <ul>
+    <li><%= link_to_unless @status.nil?, "Tümü", alerts_path %></li>
+    <% Alert.statuses.each_key do |status| %>
+      <li><%= link_to_unless @status == status, t("enums.alert.status.#{status}"), alerts_path(status: status) %></li>
+    <% end %>
+  </ul>
+</nav>
+
+<% if @alerts.any? %>
+  <%= render "alerts/table", alerts: @alerts %>
+<% else %>
+  <p>Bu durumda alarm yok.</p>
+<% end %>

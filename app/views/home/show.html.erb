@@ -34,10 +34,10 @@
 <% end %>
 
 <section>
-  <h2>Açık olaylar</h2>
-  <% if @open_incidents.any? %>
-    <%= render "incidents/table", incidents: @open_incidents %>
+  <h2>Açık alarmlar</h2>
+  <% if @open_alerts.any? %>
+    <%= render "alerts/table", alerts: @open_alerts %>
   <% else %>
-    <p>Açık olay yok.</p>
+    <p>Açık alarm yok.</p>
   <% end %>
 </section>

@@ -39,7 +39,7 @@ class ServicesController < ApplicationController
     if @service.destroy
       redirect_to services_path, notice: "Servis silindi.", status: :see_other
     else
-      redirect_to @service, alert: "Olayı olan servis silinemez.", status: :see_other
+      redirect_to @service, alert: "Alarmı olan servis silinemez.", status: :see_other
     end
   end
 
@@ -55,8 +55,8 @@ class ServicesController < ApplicationController
     )
 
     if result.http_status == :accepted
-      status = result.body[:status] == "deduplicated" ? "Açık olay zaten var; tekrar eden alarm olarak eklendi." : "Deneme alarmı gönderildi, olay açıldı."
-      redirect_to incident_path(result.body[:incident_id]), notice: status
+      status = result.body[:status] == "deduplicated" ? "Açık alarm zaten var; tekrar eden alarm olarak eklendi." : "Deneme alarmı gönderildi."
+      redirect_to alert_path(result.body[:alert_id]), notice: status
     else
       redirect_to @service, alert: result.body[:error]
     end

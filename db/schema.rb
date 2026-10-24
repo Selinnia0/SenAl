@@ -10,7 +10,42 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_222526) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_24_183734) do
+  create_table "alert_events", force: :cascade do |t|
+    t.integer "alert_id", null: false
+    t.string "kind", null: false
+    t.integer "user_id"
+    t.json "details", default: {}, null: false
+    t.datetime "occurred_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["alert_id"], name: "index_alert_events_on_alert_id"
+    t.index ["user_id"], name: "index_alert_events_on_user_id"
+  end
+
+  create_table "alerts", force: :cascade do |t|
+    t.integer "service_id", null: false
+    t.string "title", null: false
+    t.string "dedup_key", null: false
+    t.integer "urgency", default: 0, null: false
+    t.integer "status", default: 0, null: false
+    t.integer "assignee_id"
+    t.integer "current_level", default: 0, null: false
+    t.integer "escalation_round", default: 0, null: false
+    t.datetime "escalate_at"
+    t.datetime "triggered_at", null: false
+    t.datetime "acknowledged_at"
+    t.datetime "resolved_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["assignee_id"], name: "index_alerts_on_assignee_id"
+    t.index ["dedup_key"], name: "index_alerts_on_dedup_key"
+    t.index ["escalate_at"], name: "index_alerts_on_escalate_at"
+    t.index ["service_id", "dedup_key"], name: "index_alerts_on_open_dedup_key", unique: true, where: "status <> 2"
+    t.index ["service_id", "dedup_key"], name: "index_alerts_on_service_id_and_dedup_key"
+    t.index ["service_id"], name: "index_alerts_on_service_id"
+  end
+
   create_table "blackout_periods", force: :cascade do |t|
     t.string "name", null: false
     t.integer "kind", default: 0, null: false
@@ -41,49 +76,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_222526) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "incident_events", force: :cascade do |t|
-    t.integer "incident_id", null: false
-    t.string "kind", null: false
-    t.integer "user_id"
-    t.json "details", default: {}, null: false
-    t.datetime "occurred_at", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["incident_id"], name: "index_incident_events_on_incident_id"
-    t.index ["user_id"], name: "index_incident_events_on_user_id"
-  end
-
-  create_table "incidents", force: :cascade do |t|
-    t.integer "service_id", null: false
-    t.string "title", null: false
-    t.string "dedup_key", null: false
-    t.integer "urgency", default: 0, null: false
-    t.integer "status", default: 0, null: false
-    t.integer "assignee_id"
-    t.integer "current_level", default: 0, null: false
-    t.integer "escalation_round", default: 0, null: false
-    t.datetime "escalate_at"
-    t.datetime "triggered_at", null: false
-    t.datetime "acknowledged_at"
-    t.datetime "resolved_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["assignee_id"], name: "index_incidents_on_assignee_id"
-    t.index ["dedup_key"], name: "index_incidents_on_dedup_key"
-    t.index ["escalate_at"], name: "index_incidents_on_escalate_at"
-    t.index ["service_id", "dedup_key"], name: "index_incidents_on_open_dedup_key", unique: true, where: "status <> 2"
-    t.index ["service_id", "dedup_key"], name: "index_incidents_on_service_id_and_dedup_key"
-    t.index ["service_id"], name: "index_incidents_on_service_id"
-  end
-
   create_table "notifications", force: :cascade do |t|
     t.integer "user_id", null: false
-    t.integer "incident_id"
+    t.integer "alert_id"
     t.datetime "read_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.text "message"
-    t.index ["incident_id"], name: "index_notifications_on_incident_id"
+    t.index ["alert_id"], name: "index_notifications_on_alert_id"
     t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
@@ -312,13 +312,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_222526) do
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
   end
 
+  add_foreign_key "alert_events", "alerts"
+  add_foreign_key "alert_events", "users"
+  add_foreign_key "alerts", "services"
+  add_foreign_key "alerts", "users", column: "assignee_id"
   add_foreign_key "escalation_levels", "escalation_policies"
   add_foreign_key "escalation_levels", "schedules"
-  add_foreign_key "incident_events", "incidents"
-  add_foreign_key "incident_events", "users"
-  add_foreign_key "incidents", "services"
-  add_foreign_key "incidents", "users", column: "assignee_id"
-  add_foreign_key "notifications", "incidents"
+  add_foreign_key "notifications", "alerts"
   add_foreign_key "notifications", "users"
   add_foreign_key "overrides", "schedules"
   add_foreign_key "overrides", "users"

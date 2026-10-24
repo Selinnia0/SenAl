@@ -1,11 +1,11 @@
 require "test_helper"
 
-class IncidentTest < ActiveSupport::TestCase
+class AlertTest < ActiveSupport::TestCase
   setup do
     travel_to Time.zone.parse("2026-10-19 10:00")
-    @triggered = incidents(:triggered)
-    @acknowledged = incidents(:acknowledged)
-    @resolved = incidents(:resolved)
+    @triggered = alerts(:triggered)
+    @acknowledged = alerts(:acknowledged)
+    @resolved = alerts(:resolved)
     @alice = users(:alice)
   end
 
@@ -33,7 +33,7 @@ class IncidentTest < ActiveSupport::TestCase
     @triggered.resolve!(by: nil)
 
     assert @triggered.reload.resolved?
-    assert_nil @triggered.incident_events.last.user
+    assert_nil @triggered.alert_events.last.user
   end
 
   test "acknowledged → resolved: resolve!" do
@@ -59,33 +59,33 @@ class IncidentTest < ActiveSupport::TestCase
   # --- Yasak geçişler ---
 
   test "acknowledged → acknowledged yasak" do
-    assert_raises(Incident::InvalidTransition) { @acknowledged.acknowledge!(by: @alice) }
+    assert_raises(Alert::InvalidTransition) { @acknowledged.acknowledge!(by: @alice) }
     assert @acknowledged.reload.acknowledged?
   end
 
   test "triggered → triggered (retrigger!) yasak" do
-    assert_raises(Incident::InvalidTransition) { @triggered.retrigger! }
+    assert_raises(Alert::InvalidTransition) { @triggered.retrigger! }
     assert @triggered.reload.triggered?
   end
 
   test "resolved → acknowledged yasak" do
-    assert_raises(Incident::InvalidTransition) { @resolved.acknowledge!(by: @alice) }
+    assert_raises(Alert::InvalidTransition) { @resolved.acknowledge!(by: @alice) }
     assert @resolved.reload.resolved?
   end
 
   test "resolved → resolved yasak" do
-    assert_raises(Incident::InvalidTransition) { @resolved.resolve!(by: @alice) }
+    assert_raises(Alert::InvalidTransition) { @resolved.resolve!(by: @alice) }
     assert @resolved.reload.resolved?
   end
 
   test "resolved → triggered (retrigger!) yasak" do
-    assert_raises(Incident::InvalidTransition) { @resolved.retrigger! }
+    assert_raises(Alert::InvalidTransition) { @resolved.retrigger! }
     assert @resolved.reload.resolved?
   end
 
   test "yasak geçiş olay kaydı yazmaz" do
-    assert_no_difference -> { IncidentEvent.count } do
-      assert_raises(Incident::InvalidTransition) { @resolved.acknowledge!(by: @alice) }
+    assert_no_difference -> { AlertEvent.count } do
+      assert_raises(Alert::InvalidTransition) { @resolved.acknowledge!(by: @alice) }
     end
   end
 
@@ -111,36 +111,36 @@ class IncidentTest < ActiveSupport::TestCase
     assert @resolved.update(title: "Yeni başlık")
   end
 
-  # --- Zaman çizelgesi (IncidentEvent) ---
+  # --- Zaman çizelgesi (AlertEvent) ---
 
   test "acknowledge! acknowledged olayını kullanıcıyla yazar" do
-    assert_difference -> { @triggered.incident_events.count }, 1 do
+    assert_difference -> { @triggered.alert_events.count }, 1 do
       @triggered.acknowledge!(by: @alice)
     end
 
-    event = @triggered.incident_events.last
+    event = @triggered.alert_events.last
     assert_equal "acknowledged", event.kind
     assert_equal @alice, event.user
     assert_equal Time.current, event.occurred_at
   end
 
   test "resolve! resolved olayını yazar" do
-    assert_difference -> { @acknowledged.incident_events.count }, 1 do
+    assert_difference -> { @acknowledged.alert_events.count }, 1 do
       @acknowledged.resolve!(by: @alice)
     end
 
-    event = @acknowledged.incident_events.last
+    event = @acknowledged.alert_events.last
     assert_equal "resolved", event.kind
     assert_equal @alice, event.user
     assert_equal Time.current, event.occurred_at
   end
 
   test "retrigger! retriggered olayını sistem adına (user nil) yazar" do
-    assert_difference -> { @acknowledged.incident_events.where(kind: "retriggered").count }, 1 do
+    assert_difference -> { @acknowledged.alert_events.where(kind: "retriggered").count }, 1 do
       @acknowledged.retrigger!
     end
 
-    event = @acknowledged.incident_events.find_by!(kind: "retriggered")
+    event = @acknowledged.alert_events.find_by!(kind: "retriggered")
     assert_nil event.user
     assert_equal Time.current, event.occurred_at
   end

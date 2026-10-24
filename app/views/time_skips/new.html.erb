@@ -2,13 +2,13 @@
 
 <h1>Zaman sıçraması</h1>
 <p>
-  Eskalasyonu (5 dk) veya bayatlamış "Gördüm"ü (4 saat) beklemeden görmek için açık olayları ileri sarın.
-  Açık olayların bütün zamanları girilen süre kadar geriye kaydırılır ve her eskalasyon anında gerçek
+  Eskalasyonu (5 dk) veya bayatlamış "Gördüm"ü (4 saat) beklemeden görmek için açık alarmları ileri sarın.
+  Açık alarmların bütün zamanları girilen süre kadar geriye kaydırılır ve her eskalasyon anında gerçek
   eskalasyon kuralları çalışır; sanki o kadar süre geçmiş gibi olur.
 </p>
 <p><small>
   Sunucu saati değişmez. Nöbet rotasyonu, izinler ve akademik takvim gerçek saate göre hesaplanmaya devam eder.
-  Çözülmüş olaylara dokunulmaz. Bu bir demo/test aracıdır.
+  Çözülmüş alarmlara dokunulmaz. Bu bir demo/test aracıdır.
 </small></p>
 
 <%= render "shared/errors", record: @time_skip %>
@@ -27,28 +27,28 @@
 </div>
 
 <section>
-  <h2>Açık olaylar</h2>
-  <% if @open_incidents.any? %>
+  <h2>Açık alarmlar</h2>
+  <% if @open_alerts.any? %>
     <div style="overflow-x: auto">
       <table>
         <thead>
           <tr><th>#</th><th>Başlık</th><th>Durum</th><th>Seviye / tur</th><th>Atanan</th><th>Sonraki eskalasyon</th></tr>
         </thead>
         <tbody>
-          <% @open_incidents.each do |incident| %>
+          <% @open_alerts.each do |alert| %>
             <tr>
-              <td><%= link_to incident.id, incident %></td>
-              <td><%= link_to incident.title, incident %></td>
-              <td><%= status_tag(incident) %></td>
-              <td><%= incident.current_level + 1 %> / <%= incident.escalation_round + 1 %></td>
-              <td><%= incident.assignee&.name || "—" %></td>
-              <td><%= format_time(incident.escalate_at) || "—" %></td>
+              <td><%= link_to alert.id, alert %></td>
+              <td><%= link_to alert.title, alert %></td>
+              <td><%= status_tag(alert) %></td>
+              <td><%= alert.current_level + 1 %> / <%= alert.escalation_round + 1 %></td>
+              <td><%= alert.assignee&.name || "—" %></td>
+              <td><%= format_time(alert.escalate_at) || "—" %></td>
             </tr>
           <% end %>
         </tbody>
       </table>
     </div>
   <% else %>
-    <p>Açık olay yok. Servisler sayfasındaki <code>curl</code> komutuyla bir alarm gönderin.</p>
+    <p>Açık alarm yok. Servisler sayfasındaki <code>curl</code> komutuyla bir alarm gönderin.</p>
   <% end %>
 </section>

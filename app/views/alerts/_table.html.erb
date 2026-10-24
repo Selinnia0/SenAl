@@ -1,0 +1,20 @@
+<div style="overflow-x: auto">
+  <table>
+    <thead>
+      <tr><th>#</th><th>Başlık</th><th>Servis</th><th>Durum</th><th>Aciliyet</th><th>Atanan</th><th>Açılış</th></tr>
+    </thead>
+    <tbody>
+      <% alerts.each do |alert| %>
+        <tr>
+          <td><%= link_to alert.id, alert %></td>
+          <td><%= link_to alert.title, alert %></td>
+          <td><%= alert.service.name %></td>
+          <td><%= status_tag(alert) %></td>
+          <td><%= enum_label(alert, :urgency) %></td>
+          <td><%= alert.assignee&.name || "—" %></td>
+          <td><%= format_time(alert.triggered_at) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

@@ -31,32 +31,32 @@ class EventIngestor
     end
 
     def trigger(key, summary, urgency)
-      Incident.transaction do
-        if (existing = open_incident(key))
+      Alert.transaction do
+        if (existing = open_alert(key))
           existing.record_event!("deduplicated", details: { summary: summary })
           accepted("deduplicated", existing)
         else
-          accepted("triggered", Incident.trigger!(service: @service, title: summary, dedup_key: key, urgency: urgency))
+          accepted("triggered", Alert.trigger!(service: @service, title: summary, dedup_key: key, urgency: urgency))
         end
       end
     end
 
     def transition(action, key)
-      incident = open_incident(key)
-      return error(:not_found, "Bu dedup_key için açık olay yok: #{key}") unless incident
+      alert = open_alert(key)
+      return error(:not_found, "Bu dedup_key için açık olay yok: #{key}") unless alert
 
-      action == "acknowledge" ? incident.acknowledge!(by: nil) : incident.resolve!(by: nil)
-      accepted(incident.status, incident)
-    rescue Incident::InvalidTransition => e
+      action == "acknowledge" ? alert.acknowledge!(by: nil) : alert.resolve!(by: nil)
+      accepted(alert.status, alert)
+    rescue Alert::InvalidTransition => e
       error(:conflict, e.message)
     end
 
-    def open_incident(key)
-      @service.incidents.not_resolved.find_by(dedup_key: key)
+    def open_alert(key)
+      @service.alerts.not_resolved.find_by(dedup_key: key)
     end
 
-    def accepted(status, incident)
-      Result.new(http_status: :accepted, body: { status: status, incident_id: incident.id, dedup_key: incident.dedup_key })
+    def accepted(status, alert)
+      Result.new(http_status: :accepted, body: { status: status, alert_id: alert.id, dedup_key: alert.dedup_key })
     end
 
     def error(http_status, message)

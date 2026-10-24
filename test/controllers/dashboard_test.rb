@@ -12,9 +12,9 @@ class DashboardTest < ActionDispatch::IntegrationTest
 
     assert_select "td", text: "BT Altyapı"
     assert_select "td", text: "Ayşe Kaya"
-    assert_select "td", text: incidents(:triggered).title
-    assert_select "td", text: incidents(:acknowledged).title
-    assert_select "td", text: incidents(:resolved).title, count: 0
+    assert_select "td", text: alerts(:triggered).title
+    assert_select "td", text: alerts(:acknowledged).title
+    assert_select "td", text: alerts(:resolved).title, count: 0
   end
 
   test "nöbetçisi olmayan takvim boşluk olarak işaretlenir" do

@@ -27,7 +27,7 @@
         <% if authenticated? %>
           <ul>
             <li><%= link_to "Pano", root_path %></li>
-            <li><%= link_to "Olaylar", incidents_path %></li>
+            <li><%= link_to "Alarmlar", alerts_path %></li>
             <li><%= link_to "Takvimler", schedules_path %></li>
             <li><%= link_to "Müsaitliğim", unavailabilities_path %></li>
             <li><%= link_to "Bildirimlerim (#{Current.user.notifications.unread.count})", notifications_path %></li>

@@ -13,8 +13,8 @@
       <% @notifications.each do |notification| %>
         <tr>
           <td><%= format_time(notification.created_at) %></td>
-          <% if notification.incident %>
-            <td><%= link_to notification.incident.title, notification.incident %></td>
+          <% if notification.alert %>
+            <td><%= link_to notification.alert.title, notification.alert %></td>
           <% else %>
             <td><%= simple_format(notification.message, {}, wrapper_tag: "span") %></td>
           <% end %>

@@ -7,7 +7,7 @@ class TimeSkipsControllerTest < ActionDispatch::IntegrationTest
 
   test "manager formu görür ve ileri sarar" do
     sign_in_as users(:manager)
-    incident = incidents(:triggered) # escalate_at 10:05
+    alert = alerts(:triggered) # escalate_at 10:05
 
     get new_time_skip_path
     assert_response :success
@@ -15,7 +15,7 @@ class TimeSkipsControllerTest < ActionDispatch::IntegrationTest
 
     post time_skip_path, params: { time_skip: { minutes: 5 } }
     assert_redirected_to new_time_skip_path
-    assert_equal 1, incident.reload.current_level
+    assert_equal 1, alert.reload.current_level
     follow_redirect!
     assert_select "[role=alert]", /5 dakika ileri sarıldı/
   end
@@ -28,11 +28,11 @@ class TimeSkipsControllerTest < ActionDispatch::IntegrationTest
 
   test "manager olmayan kullanıcı ileri saramaz" do
     sign_in_as users(:alice)
-    incident = incidents(:triggered)
+    alert = alerts(:triggered)
 
     post time_skip_path, params: { time_skip: { minutes: 5 } }
     assert_redirected_to root_path
-    assert_equal 0, incident.reload.current_level
+    assert_equal 0, alert.reload.current_level
   end
 
   test "özellik kapalıysa 404 ve menüde görünmez" do
@@ -43,7 +43,7 @@ class TimeSkipsControllerTest < ActionDispatch::IntegrationTest
 
       post time_skip_path, params: { time_skip: { minutes: 5 } }
       assert_response :not_found
-      assert_equal 0, incidents(:triggered).reload.current_level
+      assert_equal 0, alerts(:triggered).reload.current_level
 
       get root_path
       assert_select "nav a", text: "Zaman sıçraması", count: 0

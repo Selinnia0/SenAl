@@ -18,7 +18,7 @@
 
 <section>
   <h2>Deneme alarmı gönder</h2>
-  <p><small>Terminal açmadan alarm göndermek için. API ile aynı kurallar işler (aynı <code>dedup_key</code> → yeni olay açılmaz).</small></p>
+  <p><small>Terminal açmadan alarm göndermek için. API ile aynı kurallar işler (aynı <code>dedup_key</code> → yeni alarm açılmaz).</small></p>
   <%= form_with scope: :alert, url: test_alert_service_path(@service) do |form| %>
     <%= form.label :summary, "Başlık" %>
     <%= form.text_field :summary, required: true, value: "db1 disk %95" %>

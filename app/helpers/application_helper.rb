@@ -7,18 +7,18 @@ module ApplicationHelper
     date && l(date, format: :compact)
   end
 
-  # enum değerinin Türkçe etiketi: enum_label(incident, :status) → "Tetiklendi"
+  # enum değerinin Türkçe etiketi: enum_label(alert, :status) → "Tetiklendi"
   def enum_label(record, attribute)
     value = record.public_send(attribute)
     t("enums.#{record.model_name.i18n_key}.#{attribute}.#{value}", default: value.to_s.humanize)
   end
 
-  def status_tag(incident)
-    tag.span(enum_label(incident, :status), class: "status status-#{incident.status}")
+  def status_tag(alert)
+    tag.span(enum_label(alert, :status), class: "status status-#{alert.status}")
   end
 
   def event_label(event)
-    t("enums.incident_event.kind.#{event.kind}", default: event.kind)
+    t("enums.alert_event.kind.#{event.kind}", default: event.kind)
   end
 
   # Zaman çizelgesindeki bir kaydın açıklaması.

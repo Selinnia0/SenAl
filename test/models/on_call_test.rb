@@ -46,7 +46,7 @@ class OnCallTest < ActiveSupport::TestCase
   end
 
   test "yan etkisizdir: hiçbir kayıt yazmaz" do
-    assert_no_changes -> { [ Override.count, ScheduleMembership.count, IncidentEvent.count, Notification.count ] } do
+    assert_no_changes -> { [ Override.count, ScheduleMembership.count, AlertEvent.count, Notification.count ] } do
       OnCall.for(@schedule, at: Time.current)
     end
   end

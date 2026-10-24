@@ -8,7 +8,7 @@ tr:
       compact: "%d.%m.%Y %H:%M"
 
   enums:
-    incident:
+    alert:
       status:
         triggered: Tetiklendi
         acknowledged: Görüldü
@@ -16,9 +16,9 @@ tr:
       urgency:
         high: Yüksek
         low: Düşük
-    incident_event:
+    alert_event:
       kind:
-        triggered: Olay açıldı
+        triggered: Alarm geldi
         notified: Bildirim
         acknowledged: Görüldü
         resolved: Çözüldü
@@ -54,7 +54,7 @@ tr:
     models:
       user: Kullanıcı
       service: Servis
-      incident: Olay
+      alert: Alarm
       schedule: Nöbet takvimi
       override: Elle değişiklik
       unavailability: İzin

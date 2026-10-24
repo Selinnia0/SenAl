@@ -1,4 +1,4 @@
-class Incident < ApplicationRecord
+class Alert < ApplicationRecord
   class InvalidTransition < StandardError; end
 
   # specs.md §4: durum → gidilebilecek durumlar.
@@ -10,7 +10,7 @@ class Incident < ApplicationRecord
 
   belongs_to :service
   belongs_to :assignee, class_name: "User", optional: true
-  has_many :incident_events, -> { order(:occurred_at, :id) }, dependent: :destroy, inverse_of: :incident
+  has_many :alert_events, -> { order(:occurred_at, :id) }, dependent: :destroy, inverse_of: :alert
   has_many :notifications, dependent: :destroy
 
   enum :status, { triggered: 0, acknowledged: 1, resolved: 2 }, validate: true
@@ -36,11 +36,11 @@ class Incident < ApplicationRecord
   # Yeni olay açar ve seviye 0'ı bildirir. Tekilleştirme EventIngestor'da.
   def self.trigger!(service:, title:, dedup_key:, urgency:)
     transaction do
-      incident = create!(service: service, title: title, dedup_key: dedup_key, urgency: urgency,
+      alert = create!(service: service, title: title, dedup_key: dedup_key, urgency: urgency,
                          status: :triggered, triggered_at: Time.current)
-      incident.record_event!("triggered")
-      incident.notify_current_level!
-      incident
+      alert.record_event!("triggered")
+      alert.notify_current_level!
+      alert
     end
   end
 
@@ -92,7 +92,7 @@ class Incident < ApplicationRecord
   end
 
   def record_event!(kind, user: nil, details: {})
-    incident_events.create!(kind: kind, user: user, details: details, occurred_at: Time.current)
+    alert_events.create!(kind: kind, user: user, details: details, occurred_at: Time.current)
   end
 
   def acknowledge!(by:)

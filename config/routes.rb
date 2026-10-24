@@ -14,7 +14,7 @@ Rails.application.routes.draw do
 
   root "home#show"
 
-  resources :incidents, only: %i[ index show ] do
+  resources :alerts, only: %i[ index show ] do
     member do
       post :acknowledge
       post :resolve

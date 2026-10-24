@@ -1,4 +1,4 @@
-# Demo aracı: eskalasyonu beklemeden görmek için açık olayları ileri sarar. Yalnızca manager,
+# Demo aracı: eskalasyonu beklemeden görmek için açık alarmları ileri sarar. Yalnızca manager,
 # yalnızca özellik açıkken (bkz. TimeSkip.enabled?).
 class TimeSkipsController < ApplicationController
   include ManagerOnly
@@ -10,7 +10,7 @@ class TimeSkipsController < ApplicationController
 
   def new
     @time_skip = TimeSkip.new(minutes: 5)
-    load_open_incidents
+    load_open_alerts
   end
 
   def create
@@ -20,7 +20,7 @@ class TimeSkipsController < ApplicationController
       summary = @time_skip.run!
       redirect_to new_time_skip_path, notice: "#{@time_skip.minutes} dakika ileri sarıldı. #{describe(summary)}"
     else
-      load_open_incidents
+      load_open_alerts
       render :new, status: :unprocessable_entity
     end
   end
@@ -30,13 +30,13 @@ class TimeSkipsController < ApplicationController
       head :not_found unless TimeSkip.enabled?
     end
 
-    def load_open_incidents
-      @open_incidents = Incident.not_resolved.includes(:service, :assignee).order(triggered_at: :desc)
+    def load_open_alerts
+      @open_alerts = Alert.not_resolved.includes(:service, :assignee).order(triggered_at: :desc)
     end
 
     def describe(summary)
       return "Zamanı gelen eskalasyon veya bayatlama olmadı." if summary.empty?
 
-      summary.map { |kind, count| "#{t("enums.incident_event.kind.#{kind}", default: kind)}: #{count}" }.join(", ") + "."
+      summary.map { |kind, count| "#{t("enums.alert_event.kind.#{kind}", default: kind)}: #{count}" }.join(", ") + "."
     end
 end

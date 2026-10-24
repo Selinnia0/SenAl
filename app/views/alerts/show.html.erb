@@ -1,0 +1,59 @@
+<% content_for :title, "Alarm ##{@alert.id}" %>
+
+<article>
+  <header>
+    <h1>#<%= @alert.id %> <%= @alert.title %></h1>
+    <%= status_tag(@alert) %> · Aciliyet: <%= enum_label(@alert, :urgency) %>
+  </header>
+
+  <dl>
+    <dt>Servis</dt>
+    <dd><%= @alert.service.name %></dd>
+    <dt>Tekilleştirme anahtarı</dt>
+    <dd><code><%= @alert.dedup_key %></code></dd>
+    <dt>Atanan</dt>
+    <dd><%= @alert.assignee&.name || "—" %></dd>
+    <dt>Eskalasyon</dt>
+    <dd>
+      Seviye <%= @alert.current_level + 1 %>, tur <%= @alert.escalation_round + 1 %>
+      <% if @alert.escalate_at %>
+        · bir sonraki eskalasyon: <%= format_time(@alert.escalate_at) %>
+      <% end %>
+    </dd>
+    <dt>Açılış</dt>
+    <dd><%= format_time(@alert.triggered_at) %></dd>
+    <% if @alert.acknowledged_at %>
+      <dt>Görülme</dt>
+      <dd><%= format_time(@alert.acknowledged_at) %></dd>
+    <% end %>
+    <% if @alert.resolved_at %>
+      <dt>Çözülme</dt>
+      <dd><%= format_time(@alert.resolved_at) %></dd>
+    <% end %>
+  </dl>
+
+  <% if @alert.can_acknowledge? || @alert.can_resolve? %>
+    <footer class="inline-actions">
+      <% if @alert.can_acknowledge? %>
+        <%= button_to "Gördüm", acknowledge_alert_path(@alert) %>
+      <% end %>
+      <% if @alert.can_resolve? %>
+        <%= button_to "Çözüldü", resolve_alert_path(@alert) %>
+      <% end %>
+    </footer>
+  <% end %>
+</article>
+
+<section>
+  <h2>Zaman çizelgesi</h2>
+  <ol>
+    <% @alert.alert_events.includes(:user).each do |event| %>
+      <li>
+        <time datetime="<%= event.occurred_at.iso8601 %>"><%= format_time(event.occurred_at) %></time>
+        — <strong><%= event_label(event) %></strong>
+        <% if event.user %> · <%= event.user.name %><% end %>
+        <% if (description = event_description(event)) %> · <%= description %><% end %>
+      </li>
+    <% end %>
+  </ol>
+</section>
