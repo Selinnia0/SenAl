@@ -19,6 +19,15 @@
   --sa-ink-subtle:  #6D6861;    /* önerilen #8C867D bg'de 3.3 idi; AA için koyulaştırıldı (bg 5.1) */
   --sa-ink-faint:   #8C867D;    /* yalnızca dekor/ikon, metin için kullanılmaz */
   --sa-ink-inverse: #F8F5F0;
+  --sa-ink-hover:   #2B2B2E;    /* birincil buton hover */
+  --sa-on-accent:   #FFFFFF;    /* vurgulu buton metni */
+
+  /* Koyu zeminlerde (kömür hero, bordo kapanış) ikincil açık metin ve kenarlık */
+  --sa-inverse-muted:  #D9D3C8; /* kömür zeminde 12.1:1 */
+  --sa-inverse-subtle: #CFC8BD; /* kömür zeminde 10.9:1 */
+  --sa-deep-muted:     #E8D9DC; /* bordo zeminde 11.1:1 */
+  --sa-inverse-border: rgba(248,245,240,.45);
+  --sa-inverse-hover:  rgba(248,245,240,.12);
 
   /* Vurgu (SenAl'ın kendi tonu) */
   --sa-accent:        #E4572E;  /* dekor, odak halkası (bg'ye karşı 3.4, metin dışı öğe için ≥ 3) */

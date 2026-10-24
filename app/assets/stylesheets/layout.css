@@ -85,7 +85,7 @@
   .hero { background: var(--sa-ink); color: var(--sa-ink-inverse); }
   .hero__inner { padding-top: var(--sa-space-24); padding-bottom: var(--sa-space-24); }
   .hero h1 { color: var(--sa-ink-inverse); font-size: var(--sa-text-4xl); max-width: 14ch; margin-bottom: var(--sa-space-6); }
-  .hero__lead { font-size: var(--sa-text-lg); color: #D9D3C8; max-width: 60ch; } /* kömür zeminde 12.1:1 */
+  .hero__lead { font-size: var(--sa-text-lg); color: var(--sa-inverse-muted); max-width: 60ch; }
   .hero__actions { display: flex; flex-wrap: wrap; gap: var(--sa-space-3); margin-top: var(--sa-space-8); }
 
   .modules { padding: var(--sa-space-16) 0; }
@@ -96,7 +96,7 @@
   .closing { background: var(--sa-deep); color: var(--sa-ink-inverse); }
   .closing__inner { padding-top: var(--sa-space-16); padding-bottom: var(--sa-space-16); }
   .closing h2 { color: var(--sa-ink-inverse); font-size: var(--sa-text-3xl); margin-top: 0; }
-  .closing p { color: #E8D9DC; } /* bordo zeminde 11.1:1 */
+  .closing p { color: var(--sa-deep-muted); }
 
   .public-footer { border-top: 1px solid var(--sa-border); padding: var(--sa-space-6) 0; font-size: var(--sa-text-sm); color: var(--sa-ink-muted); }
   .public-footer__inner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--sa-space-2); }

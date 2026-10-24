@@ -20,3 +20,20 @@ Bundan önce insan ajanın bir uydurmasını düzeltmedi; istekleri (kayıt sayf
 | 6 | `Schedule#gaps` örneklemeyi `from`'un dakikasından başlattığı için boşluk "00:52 – 00:52" raporlandı (gerçekte 00:00 – 00:00). Faz 5 testleri çapa tam saat olduğu için bunu yakalamadı. | Seed ile yerelde çalıştırınca çıktıyı okuyarak | Önce kırmızı bir test yazıldı, sonra örnekler saat başına hizalandı. |
 | 6 | Test veritabanında `db:seed:replant` çalıştırıldıktan sonra fixture'ı olmayan tablolarda seed kayıtları kaldı, fixture yüklemesi yabancı anahtar hatası verdi. | Test çıktısı | `bin/rails db:test:prepare`. Kod hatası değil; AGENT.md'ye not edildi. |
 | 4 | `SolidQueue::Configuration#recurring_tasks` geliştirme ortamında veritabanı tablosu istediği için doğrulama komutu hata verdi. | Komut çıktısı | Veritabanına dokunmayan `recurring_tasks_config` kaynak koddan bulunup kullanıldı. |
+
+## v2 (olay yönetimi) — ajanın kendi yakaladığı hatalar ve yanlış söyledikleri
+
+| Faz | Ne oldu | Nasıl yakalandı | Düzeltme |
+|---|---|---|---|
+| B | PostgreSQL'de `AddIncidentIdToNotifications` `PG::DuplicateObject` ile düştü: `rename_column` FK kısıt adını korumuştu, yeni FK aynı adı üretti. SQLite'ta ve bütün testlerde görünmedi. | `main` şeması + seed ile dolu PostgreSQL'de yükseltme denemesi (worktree + taşınabilir PostgreSQL 16) | Yeni migration `RenameNotificationsAlertForeignKey`; yükseltme ve sıfırdan kurulum yeniden denendi |
+| B | Yeni migration'ı `CreateIncidents` adıyla üretmeye çalıştı; v1'de aynı sınıf vardı. Sonra zaman damgası FK'lerin önüne düştü. | Generator uyarısı / dosya sırası | `CreateResponseIncidents`, zaman damgası öne alındı (henüz çalışmamıştı) |
+| B | `TimelineEvent` enum'unda `update` değeri `update!` ile çakışıyordu. | Konsolda önceden denendi | `prefix: true` |
+| C | Testte `assert_no_difference`'a dizi döndüren lambda verdi; bir test yeni 7 günlük sınırı aşan süre denedi. | Test çıktısı | `assert_no_changes`; iki adımlı sıçrama |
+| D | **Kullanıcıya yanlış sayı söyledi:** "10 testin 7'si ilk çalıştırmada geçti" dedi; doğrusu 6'ydı (helper testi de kırmızıydı). | Sonraki test çıktısı | Kullanıcıya düzeltildiği söylendi |
+| D | "Önce test" kuralına tam uymadı: CSS, partial ve kabuğu testlerden önce yazdı. | Kendi değerlendirmesi | Faz D özetinde açıkça belirtildi |
+| D | `--sa-accent-strong`'a `--sa-accent-hover` ile aynı hex'i iki kez yazdı (spec: değer tekrar yazılmaz). | Yazdıktan sonra okuyarak | `var(--sa-accent-hover)` |
+| E | **CSS yorumlarına hesaplamadan kontrast oranı yazdı** (11.7 / 12.9 / 11.3); gerçeği 10.9 / 12.1 / 11.1. | Hemen ardından hesaplayarak | Yorumlar düzeltildi, sonra değerler token'a taşındı |
+| E | `PostmortemsController#publish` içine gereksiz ve okunmaz bir satır yazdı. | Kendi okuması | Domain doğrulamasına bırakıldı (tek satır) |
+| F | AGENT.md'ye "tokens.css dışında hex yok" yazdı; kodda 8 sabit renk vardı. | Kuralı grep ile doğrularken | Renkler token'a taşındı, koruma testi eklendi |
+| B | Doğrulama komutunda var olmayan bir metot (`migration_context`) kullandı. | Komut çıktısı | Sonuç başka çıktıdan okundu; uygulamayla ilgisi yok |
+

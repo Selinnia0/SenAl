@@ -183,3 +183,32 @@ Son sürümde bu bölümler ajanla birlikte büyür; diff teslim edilir.
 | 5 | | | | | |
 | 6 | | | | | |
 | 7 | | | | | |
+
+---
+
+# v2 planı: incident.io yönü
+
+> Aynı çalışma kuralları geçerli (faz faz, test önce, uydurma yok, çalışmış migration düzenlenmez). Çalışma
+> `v2-incident-response` dalında; `main` canlı demoyu korur. Tanım: `specs.md` → "v2".
+
+## Faz A — Analiz ✅
+Fark tablosu (koru / değiştir / ekle / sil), şema önerisi, 13 karar. Kararlar: v1 `Incident` → `Alert`; izin listesi
+(ileri atlama + iki yeniden açma); alarmdan ilan → alarm "Gördüm"; Z numaraları Z1–Z8; lider önerisinde override de
+müsaitlik kontrolünden geçer; durum sayfasında yalnızca `public_impact`; kapanış yalnızca lider/yönetici;
+`/` landing, `/dashboard` pano; kontrast için `-ink` token'ları; partial bileşenler (ViewComponent yok).
+
+## Faz B — Domain ✅
+B.1 yeniden adlandırma (davranış aynı, 144 test değişmeden). B.2 yeni modeller, `Incident` durum makinesi ve iş kuralları
+(57 test). PostgreSQL'de yükseltme denendi; FK adı çakışması yeni migration ile düzeltildi.
+
+## Faz C — Zaman kuralları ✅
+Z3, Z4, Z5 scope'ları (Range), hatırlatıcılar `EscalationSweepJob` içinde, Z6 lider önerisi, `TimeSkip` olaylara genişletildi.
+
+## Faz D — Tasarım sistemi ✅
+Token'lar, fontlar, bileşenler, uygulama kabuğu, `/design`. Pico.css kaldırıldı.
+
+## Faz E — Ekranlar ✅
+Olay listesi, ilan, detay, postmortem, post-incident, halka açık durum sayfası, landing; Turbo ile canlı yenileme.
+
+## Faz F — Belgeler ✅
+specs/plan v2 bölümleri, AGENT.md değişiklik bölümü ve diff, README, `docs/G1.md` (v2 dosya:satır).

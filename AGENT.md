@@ -133,3 +133,100 @@ grep -rnE "default_scope|method_missing|Time\.now|Date\.today|\.(resolved|acknow
 - Çalışmış migration düzenlenmez; şema değişikliği yeni migration ile.
 - Spec'teki alan/scope/metot adları değiştirilmez; sapma bu dosyanın 5. bölümüne yazılır.
 - Küçük, Türkçe, açıklayıcı commit'ler. Yapılamayan her şey `docs/yapamadiklarim.md`'ye.
+
+---
+
+## 10. v2 değişiklikleri: incident.io yönü (response katmanı)
+
+> Yukarıdaki 1–9 v1'dir ve silinmedi. Bu bölüm v2'de eklenen ve değişenleri yazar; çelişki varsa **bu bölüm geçerlidir**.
+> Tanım: `docs/specs.md` → "v2", plan: `docs/plan.md` → "v2 planı", kod yerleri: `docs/G1.md`.
+
+### 10.1 v1 kayıtlarından değişenler
+
+| v1'de | v2'de |
+|---|---|
+| `Incident` (triggered → acknowledged → resolved), `IncidentEvent` | **`Alert`**, **`AlertEvent`** (davranış aynı; `app/models/alert.rb`) |
+| §7 "Durum makinesi, Z1, Z3, bildirim → `incident.rb`" | `alert.rb`; `incident.rb` artık response katmanı |
+| Z3 bayatlama, Z4 müsaitlik, Z5 boşluk | **Z7** bayatlama, **Z6** müsaitlik, **Z8** boşluk (Z3–Z5 yeni kurallar) |
+| API yanıtı `incident_id` | `alert_id` |
+| `/` pano | `/` halka açık landing, pano `/dashboard` |
+| Pico.css (sınıfsız, CDN) | Kendi tasarım sistemi: `tokens.css` + `base/components/layout.css` (`@layer`) |
+| `TimeSkip` sınırı 24 saat, yalnızca alarmlar | 7 gün; olayları da kaydırır (Z3–Z5 demoda görülebilsin) |
+
+### 10.2 Domain sözlüğü (TR ↔ EN, ek)
+
+| Türkçe (arayüz) | İngilizce (kod) | Anlamı |
+|---|---|---|
+| Alarm | `Alert` | On-call katmanı: nöbetçiyi çağıran kayıt |
+| Olay | `Incident` | İlan edilen, ekip tarafından yönetilen olay |
+| Olay lideri | incident lead (`IncidentRoleAssignment#lead`) | İlanda zorunlu |
+| İletişim sorumlusu | `communications` rolü | Durum sayfası ve paydaş iletişimi |
+| Zaman çizelgesi | `TimelineEvent` | `update`, `status_change`, `role_change`, `severity_change`, `reopened` |
+| Durum sayfası | status page (`StatusPageUpdate`, `StatusPage`) | Girişsiz halka açık sayfa |
+| Postmortem | `Postmortem` | Olay sonrası değerlendirme |
+| Takip görevi | follow-up (`FollowUp`) | Tekrarı önleyecek iş |
+| Önem | `severity` | critical / major / minor |
+| Ön değerlendirme · İnceleniyor · Düzeltiliyor · İzleniyor · Çözüldü · Kapatıldı · Reddedildi | triage · investigating · fixing · monitoring · resolved · closed · declined | Olay durumları |
+
+### 10.3 Yeni yasaklar ve kurallar
+
+- **Orijinal marka adı arayüzde yok** (incident.io, Alarmalade, PagerDuty; logo, alev ikonu). Yalnızca README'de "ilham kaynağı". Koruma testi: `test/controllers/design_system_test.rb` (app/views, app/assets, app/helpers, app/javascript, public).
+- **Ticari fontlar yok**; açık lisanslı: Newsreader, Inter, Geist Mono (Google Fonts).
+- **Renk değeri tek yerde**: `tokens.css`. Başka CSS dosyasında hex/rgba yazılmaz. Kontrol: `grep -nE "#[0-9A-Fa-f]{3,6}\b|rgba?\(" app/assets/stylesheets/{base,components,layout}.css` boş dönmeli.
+- **Metin rengi için yalnızca `-ink` token'ları** (WCAG AA ≥ 4.5:1). Ana severity renkleri nokta/kenarlık içindir. Severity hiçbir zaman yalnızca renkle anlatılmaz (rozette metin var).
+- **Turbo yayını callback'le yapılmaz** (`broadcasts_to` yasak listesine takılır): başarılı işlemden sonra controller'da `IncidentScoped#broadcast_incident_change` (`broadcast_refresh_to`).
+- Olay geçişleri yalnızca `Incident#transition_to!`; enum bang metotları (`closed!` …) domain kodunda yok. Yasak kalıp taramasına yeni durumlar eklendi:
+  `grep -rnE "\.(resolved|acknowledged|triggered|closed|declined|investigating|fixing|monitoring|triage)!" app lib config db/seeds.rb`
+
+### 10.4 Yeni test kuralları
+
+- Her yasak geçiş ayrı testli; ayrıca **izin listesi dışındaki her (from, to) çifti** tek bir kapsamlı testte denenir (`incident_test.rb`). Testteki `ALLOWED` tablosu `Incident::ALLOWED_TRANSITIONS` ile eşitliği kontrol edilir: biri değişirse diğeri de değişmek zorunda.
+- Her iş kuralı en az bir testli (`incident_rules_test.rb`); kural ihlali `TransitionBlocked` (bir `InvalidTransition`) ya da `NotPermitted`.
+- Z3–Z5: sınırın iki yanı (`29:59/30:00`, `5 gün − 1 sn/5 gün`, `7 gün/7 gün + 1 sn`) ve hatırlatıcının **tekrar etmediği**.
+- Bildirim sayısı her zaman olaya göre süzülür (`incident.notifications`): fixture olayları da aynı süpürmede hatırlatıcı alabilir.
+- Arayüz: her yeni ekran için controller testi; durum sayfasında **iç notların sızmadığı** ayrıca testli; canlı yenileme `assert_turbo_stream_broadcasts` ile.
+- Şema değişikliği hem SQLite (testler) hem PostgreSQL'de (yükseltme senaryosu) denenir; bkz. 10.6.
+
+### 10.5 Konvansiyondan sapmalar (v2)
+
+| Sapma | Sebep |
+|---|---|
+| Yeni migration'ın sınıf adı `CreateResponseIncidents` (tablo `incidents`). | v1'de `CreateIncidents` sınıfı zaten var; aynı adla iki migration olamaz. |
+| `RenameNotificationsAlertForeignKey` ayrı migration. | PostgreSQL'de `rename_column` kısıt adını değiştirmiyor; yeni `notifications.incident_id` FK'sı aynı adı üretip çakışıyordu (bkz. 10.6). |
+| `TimelineEvent.kind` enum'u önekli (`kind_update?`). | `update` değeri ActiveRecord'un `update!` metoduyla çakışıyor; Rails önek olmadan reddediyor (konsolda doğrulandı). |
+| Spec'in `TimelineEvent.kind` listesinde durum sayfası türü yok; durum sayfası yayını `update` olarak, `details["status_page"]` ile yazılır. | Spec'in tür listesi korunsun diye. |
+| `Incident`'e spec'te olmayan `last_update_at`, `update_reminder_sent_at`, `postmortem_reminder_sent_at`. | Z3 scope'u Range ile yazılabilsin; hatırlatıcı her dakika tekrar gitmesin. |
+| Geçiş grafiği izin listesi; spec'te belirsiz kalan ileri atlamalar (investigating → monitoring / resolved, fixing → resolved) izinli, fixing → investigating yasak. | Faz A kararı 3. |
+| Lider önerisinde override'la nöbet verilen kişi de müsaitlik kontrolünden geçer (alarm çağrısında geçmez). | Faz A kararı 6: v1'in "override bilinçli karar" kuralı alarm için korunur. |
+| Kontrast için `-ink` token'ları ve `--sa-accent-strong` eklendi, `--sa-ink-subtle` #8C867D → #6D6861. | Verilen palet metin olarak AA'yı sağlamıyordu (Faz A ölçümü). |
+| Bileşenler partial (`app/views/components/`), ViewComponent gem'i yok. | Yeni gem ve derleme adımı olmasın. |
+| Olay listesi varsayılan olarak yalnızca aktifleri gösterir (`status=all` hepsi). | Spec belirtmiyor; kriz anında kapanmış olaylar gürültü. |
+| "5 gün" takvim günü. | İş günü için gem gerekir; kullanılmadı. |
+
+### 10.6 Tuzaklar (v2'de yaşandı)
+
+- **PostgreSQL'de yeniden adlandırma FK adını korur.** Rails FK adını tablo+sütundan türetir (`fk_rails_<hash>`); `rename_column` sonrası eski ad kalır ve aynı tablo+sütun yeniden kullanılınca çakışır. SQLite bunu göstermez. Yeniden adlandırma içeren her migration, `main`'deki şema+seed ile dolu bir PostgreSQL'de yükseltme olarak denenmeli (worktree + taşınabilir PostgreSQL, bkz. G5 notları).
+- **`render layout: "components/…"` partial'ları** blok bekler (`_card`, `_page_header`, `_table`); bloksuz `render` kullanılmaz.
+- **`ActionView::TestCase` yalnızca test edilen helper'ı yükler**: başka helper'a (ör. `enum_label`) bağlı helper testinde `include ApplicationHelper`.
+- **Turbo yenileme yayını** `request_id: Turbo.current_request_id` ile gönderilir; işlemi yapan tarayıcı kendi yenilemesini yok sayar.
+- **`assert_no_difference` sayı bekler**; dizi döndüren lambda için `assert_no_changes`.
+
+### 10.7 Kod haritası (v2)
+
+| Ne | Nerede |
+|---|---|
+| Alarm durum makinesi, Z1, Z7, bildirim | `app/models/alert.rb` |
+| Olay durum makinesi, iş kuralları, Z3–Z5, lider önerisi (Z6) | `app/models/incident.rb` |
+| Durum sayfası verisi | `app/models/status_page.rb` |
+| Olay eylemleri (yükleme, hata mesajı, canlı yayın) | `app/controllers/concerns/incident_scoped.rb` |
+| Ekranlar | `app/controllers/{incidents,incident_updates,status_page_updates,role_assignments,follow_ups,postmortems,post_incident,status_pages,landing,dashboard}_controller.rb` |
+| Tasarım sistemi | `app/assets/stylesheets/tokens.css`, `app/views/components/`, `app/helpers/components_helper.rb`, `/design` |
+| Kural → dosya:satır | `docs/G1.md` |
+
+### 10.8 Komutlar (ek)
+
+```sh
+git switch v2-incident-response
+bin/rails db:migrate && bin/rails db:seed   # v2 seed: farklı aşamalarda 4 olay
+bin/dev                                     # /, /status (girişsiz), /incidents, /design
+```

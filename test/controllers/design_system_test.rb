@@ -53,4 +53,11 @@ class DesignSystemTest < ActionDispatch::IntegrationTest
     offenders = files.select { |path| File.read(path).match?(forbidden) }
     assert_empty offenders, "Marka adı geçen dosyalar: #{offenders.join(', ')}"
   end
+
+  test "renk değerleri yalnızca tokens.css'te (diğer CSS dosyalarında hex/rgba yok)" do
+    files = Dir[Rails.root.join("app/assets/stylesheets/*.css")] - [ Rails.root.join("app/assets/stylesheets/tokens.css").to_s ]
+    assert_operator files.size, :>=, 3
+    offenders = files.select { |path| File.read(path).match?(/#\h{3,6}\b|rgba?\(/) }
+    assert_empty offenders, "tokens.css dışında renk değeri: #{offenders.join(', ')}"
+  end
 end

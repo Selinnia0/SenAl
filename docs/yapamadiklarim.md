@@ -21,6 +21,24 @@
 | 6 | Tarayıcıda görsel kontrol | Sayfalar gerçek sunucuda `curl` ile gezildi (15 sayfa 200, akış uçtan uca çalıştı), ama hiçbir sayfa bir tarayıcıda açılıp görsel olarak incelenmedi. |
 | — | E-posta bildirimi | Yalnızca uygulama içi bildirim var (spec §2'ye göre yeterli). Şifre sıfırlama e-postası dışında e-posta gönderilmiyor; canlıda SMTP ayarı yok. |
 
+## v2 (olay yönetimi) — yapılamayanlar / doğrulanmayanlar
+
+| Faz | Madde | Durum / sebep |
+|---|---|---|
+| D, E | Görsel doğrulama | Ajanın ortamında tarayıcı yok; hiçbir v2 ekranı görsel olarak incelenmedi. Faz D'de istenen ekran görüntüleri gelmedi. Doğrulanan: HTML yapısı (controller testleri), 18 ekranın gerçek sunucuda 200 dönmesi, CSS dosyalarının sunulması, kontrast oranlarının hesabı. 375px'te yatay kaydırma olmadığı ve mobil menünün açıldığı **doğrulanmadı**. |
+| E | Canlı güncelleme (iki tarayıcı) | Yayının gönderildiği testli (`assert_turbo_stream_broadcasts`), Action Cable el sıkışması elle denendi (101, bağlantı kayıtlı). Bir sekmedeki değişikliğin diğerinde görünmesi ve işlemi yapanın kendi yenilemesini yok sayması tarayıcıda **denenmedi**. |
+| C, E | Gecikme bantlarının kendiliğinden belirmesi | Z3/Z4 bantları sayfa açılırken hesaplanır; yalnızca zaman geçince sayfa yenilenmez. Hatırlatıcı bildirimi her dakikalık işle gider. |
+| C | İş günü | "5 gün" takvim günüdür; iş günü hesabı için gem gerekirdi, kullanılmadı. |
+| B, C | PostgreSQL'de domain testleri | Testler SQLite'ta koşar. PostgreSQL'de yalnızca migration'lar (yükseltme ve sıfırdan kurulum) ve seed denendi; yeni scope'lar (`or`/`and`, Range) PostgreSQL'de çalıştırılmadı. |
+| — | v2'nin canlıya alınması | `v2-incident-response` dalı push edilmedi, deploy edilmedi (ajanın GitHub kimlik bilgisi yok). Canlı URL v1'i gösterir. |
+| E | Eski ekranların bileşenlere taşınması | Takvim, müsaitlik, servis, akademik takvim, bildirim, zaman sıçraması ekranları yeni temel stillerle çalışır ama bileşenlere (kart, tablo, sayfa başlığı) taşınmadı; spec Faz E'de dört ekran istiyordu. |
+| E | Arama | Yalnızca olay başlığında, büyük/küçük harf duyarsız `LIKE`. SQLite'ta `LOWER` yalnızca ASCII'yi küçültür (ör. "İ"). |
+| — | API alan adı değişti | Yanıttaki `incident_id` artık `alert_id`; bu alanı okuyan dış bir sistem varsa bozulur. |
+
+### v2'de bilerek kapsam dışı
+
+AI kök neden analizi, Slack/Teams entegrasyonu, çağrı transkripti, gerçek SMS/telefon araması, çoklu organizasyon.
+
 ## Kapsam dışı bırakılanlar (`specs.md` §10)
 
 SMS/telefon araması, mobil uygulama, çok kiracılık, Slack entegrasyonu, SLO/analitik raporlar, otomatik çözme, olay birleştirme (merge), postmortem.

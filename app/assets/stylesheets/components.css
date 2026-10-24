@@ -17,11 +17,11 @@
   .btn svg { width: 16px; height: 16px; flex: none; }
 
   .btn--primary { background: var(--sa-ink); color: var(--sa-ink-inverse); }
-  .btn--primary:hover { background: #2B2B2E; color: var(--sa-ink-inverse); }
+  .btn--primary:hover { background: var(--sa-ink-hover); color: var(--sa-ink-inverse); }
 
   /* Yalnızca tek kritik eylemde ("Olay ilan et"). Zemin AA için accent-strong. */
-  .btn--accent { background: var(--sa-accent-strong); color: #FFFFFF; }
-  .btn--accent:hover { background: var(--sa-accent-strong-hover); color: #FFFFFF; }
+  .btn--accent { background: var(--sa-accent-strong); color: var(--sa-on-accent); }
+  .btn--accent:hover { background: var(--sa-accent-strong-hover); color: var(--sa-on-accent); }
 
   .btn--secondary { background: var(--sa-surface); color: var(--sa-ink); border-color: var(--sa-border); }
   .btn--secondary:hover { background: var(--sa-surface-muted); color: var(--sa-ink); }
@@ -214,9 +214,9 @@
 /* Faz E ekran bileşenleri */
 @layer components {
   /* Koyu zemin üzerinde buton ve eyebrow (hero, kapanış) */
-  .btn--inverse { background: transparent; color: var(--sa-ink-inverse); border-color: rgba(248,245,240,.45); }
-  .btn--inverse:hover { background: rgba(248,245,240,.12); color: var(--sa-ink-inverse); }
-  .eyebrow--inverse { color: #CFC8BD; } /* kömür zeminde 10.9:1 */
+  .btn--inverse { background: transparent; color: var(--sa-ink-inverse); border-color: var(--sa-inverse-border); }
+  .btn--inverse:hover { background: var(--sa-inverse-hover); color: var(--sa-ink-inverse); }
+  .eyebrow--inverse { color: var(--sa-inverse-subtle); }
 
   .incident-title { font-size: var(--sa-text-2xl); margin-bottom: var(--sa-space-3); }
   .incident-summary { font-size: var(--sa-text-lg); color: var(--sa-ink-muted); max-width: 65ch; }

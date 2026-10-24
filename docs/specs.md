@@ -377,3 +377,115 @@ end
 ## 10. Kapsam dışı (bilinçli olarak yapılmayacaklar)
 
 SMS/telefon araması, mobil uygulama, çok kiracılık, Slack entegrasyonu, SLO/analitik raporlar, otomatik çözme, olay birleştirme (merge), postmortem. Bunlar istenirse `docs/yapamadiklarim.md` içinde "kapsam dışı bırakıldı" olarak listelenir.
+
+---
+
+# v2: incident.io yönü (response katmanı)
+
+> v1 (yukarısı) PagerDuty'den ilham alan on-call katmanıdır ve **korunur**. v2, ürünü incident.io'nun
+> "alarm → olay ilanı → ekip koordinasyonu → durum sayfası → post-incident" akışına genişletir.
+> Ürün adları yalnızca README'de "ilham kaynağı" olarak geçer; arayüzde orijinal marka, logo, alev ikonu yoktur.
+
+## v2.0 Neden
+
+v1'in aort dilimi alarmın doğru kişiye ulaşmasında bitiyordu. Fortune 500 şirketlerinin ödediği asıl değer,
+alarmdan sonra gelen koordinasyon: kim liderlik ediyor, müşteriler ne zaman ve ne biliyor, aynı olay neden
+tekrar olmasın. v2 bunu ekler; v1'in eskalasyonu ve 100+ adaptasyonu (izin, akademik takvim) yeni akışa bağlanır.
+
+## v2.1 Aort dilimi
+
+```
+Alarm gelir (API / deneme formu)
+  → nöbetçi çağrılır, "Gördüm" gelmezse eskalasyon             (v1, korunur)
+  → alarmdan olay ilan edilir: önem + olay lideri (zorunlu)
+  → ekip zaman çizelgesine güncelleme yazar, durum ilerler
+  → durum sayfası elle güncellenir; çözülünce otomatik "resolved"
+  → olay çözülür
+  → post-incident: postmortem + takip görevleri tamamlanınca kapatılır
+```
+
+## v2.2 Sözlük (ek)
+
+| Türkçe (arayüz) | İngilizce (kod) | Anlamı |
+|---|---|---|
+| Alarm | `Alert` | v1'deki olay: on-call katmanı (`triggered → acknowledged → resolved`) |
+| Olay | `Incident` | İlan edilen, ekip tarafından yönetilen olay (response katmanı) |
+| Olay lideri | incident lead (`IncidentRoleAssignment` `lead`) | Olayı yöneten kişi; ilan sırasında zorunlu |
+| İletişim sorumlusu | `communications` rolü | Durum sayfası ve paydaş iletişimi |
+| Zaman çizelgesi | `TimelineEvent` | Güncelleme, durum/önem/rol değişikliği, yeniden açma |
+| Durum sayfası | status page (`StatusPageUpdate`, `StatusPage`) | Girişsiz, halka açık sayfa |
+| Postmortem | `Postmortem` | Olay sonrası değerlendirme |
+| Takip görevi | follow-up (`FollowUp`) | Tekrarı önleyecek iş |
+| Önem | `severity` | `critical` / `major` / `minor` |
+
+## v2.3 Veri modeli
+
+- v1 `Incident` → **`Alert`**, `IncidentEvent` → **`AlertEvent`** (yeni migration ile yeniden adlandırma, davranış aynı).
+- **`Incident`**: `service_id`, `alert_id` (ops.), `title`, `summary`, `severity` (critical 0 / major 1 / minor 2),
+  `status` (triage 0, investigating 1, fixing 2, monitoring 3, resolved 4, closed 5, declined 6), `public_impact`,
+  `declared_at`, `last_update_at`, `resolved_at`, `closed_at`, `update_reminder_sent_at`, `postmortem_reminder_sent_at`.
+- **`IncidentRoleAssignment`**: `incident_id`, `user_id`, `role` (lead / communications); (olay, rol) tekil.
+- **`TimelineEvent`**: `incident_id`, `user_id` (ops.), `kind` (update / status_change / role_change / severity_change / reopened; enum önekli: `kind_update?`), `body`, `details`, `occurred_at`.
+- **`StatusPageUpdate`**: `incident_id`, `public_status` (investigating / identified / monitoring / resolved), `message`, `published_at`.
+- **`Postmortem`**: `incident_id` (tekil), `body`, `due_on`, `published_at`.
+- **`FollowUp`**: `incident_id`, `owner_id`, `title`, `due_on`, `completed_at`.
+- `Notification`: `alert_id` (eski `incident_id`), yeni `incident_id` (hatırlatıcılar).
+
+## v2.4 Durum makinesi: `Incident`
+
+İzin listesi (listede olmayan her geçiş `Incident::InvalidTransition`):
+
+| Durum | Gidilebilir |
+|---|---|
+| triage | investigating, declined |
+| investigating | fixing, monitoring, resolved |
+| fixing | monitoring, resolved |
+| monitoring | resolved, **investigating** (yeniden açma) |
+| resolved | closed, **investigating** (yeniden açma) |
+| closed, declined | — |
+
+Yeniden açmalar zaman çizelgesine `reopened` düşer. Enum bang metotlarına karşı `status_transition_allowed` doğrulaması.
+
+## v2.5 İş kuralları
+
+1. İlanda **olay lideri zorunlu**. Öneri: servisin seviye 0 takviminin şu anki nöbetçisi; izinli veya akademik kapanma dönemindeki kişi önerilmez (Z6).
+2. Alarmdan ilan edilen olay alarmı ilan eden adına "Gördüm" yapar (eskalasyon durur).
+3. `public_impact` olay, en az bir durum sayfası güncellemesi yayınlanmadan **çözülemez** (`TransitionBlocked`).
+4. Olay çözülünce: halka açıksa durum sayfasına otomatik "resolved" güncellemesi, bağlı açık alarm çözülür (açık metot, callback değil).
+5. **Kapanış**: yalnızca olay lideri veya yönetici (`NotPermitted`); critical/major'da yayınlanmış postmortem; bütün takip görevleri tamamlanmış.
+
+## v2.6 Zaman kuralları (hepsi `travel_to` testli, sınırın iki yanı)
+
+| # | Kural | Durum |
+|---|---|---|
+| Z1 | Alarm N dk "Gördüm" alınmazsa sonraki seviye | v1, korundu |
+| Z2 | Nöbet rotasyonu | v1, korundu |
+| Z3 | Aktif critical olayda 30 dk, major'da 60 dk güncelleme yoksa "güncelleme gecikti" (`Incident.update_overdue`); lider ve iletişim sorumlusuna bir kez hatırlatıcı | yeni |
+| Z4 | critical/major olay çözüldükten 5 gün sonra yayınlanmış postmortem yoksa gecikmiş (`Incident.postmortem_overdue`); lidere bir kez hatırlatıcı | yeni |
+| Z5 | Halka açık çözülmüş olay durum sayfası geçmişinde 7 gün görünür (`Incident.recent_for_status_page`) | yeni |
+| Z6 | İzin / akademik takvim: kişi çağrılmaz, lider önerilmez | v1 Z4, yeni akışa bağlandı |
+| Z7 | Bayatlamış "Gördüm" (v1 Z3) | korundu, yeniden numaralandı |
+| Z8 | Nöbet boşluğu raporu (v1 Z5) | korundu, yeniden numaralandı |
+
+Sınırlar dahil (`<=`). Hatırlatıcılar her dakika çalışan `EscalationSweepJob` içinden çağrılır.
+
+## v2.7 Arayüz
+
+| Sayfa | Yol | Giriş |
+|---|---|---|
+| Landing | `/` | gerekmez |
+| Durum sayfası | `/status` | gerekmez |
+| Pano | `/dashboard` | gerekir |
+| Olaylar | `/incidents` (durum/önem filtresi, arama) | gerekir |
+| Olay ilan et | `/incidents/new` (`?alert_id=` ile alarmdan) | gerekir |
+| Olay detayı | `/incidents/:id` (2/3 içerik + 1/3 panel) | gerekir |
+| Postmortem | `/incidents/:id/postmortem/edit` | gerekir |
+| Post-incident | `/post_incident` | gerekir |
+| Tasarım sistemi | `/design` | yalnızca geliştirme |
+
+Tasarım: `app/assets/stylesheets/tokens.css` (tek kaynak) + `base/components/layout.css`, bileşenler
+`app/views/components/`. Canlı güncelleme: `turbo_stream_from` + controller'da açık `broadcast_refresh_to`.
+
+## v2.8 Kapsam dışı (bilinçli)
+
+AI kök neden analizi, Slack/Teams entegrasyonu, çağrı transkripti, gerçek SMS/telefon araması, çoklu organizasyon.
