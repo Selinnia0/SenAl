@@ -1,0 +1,18 @@
+<%# Z3 / Z4 uyarı bantları. Turbo Stream ile güncellenir (id="incident_banners"). %>
+<%# locals: (incident:) -%>
+<div id="incident_banners">
+  <% if incident.update_overdue? %>
+    <div class="banner banner--critical" role="status">
+      <strong>Güncelleme gecikti.</strong>
+      <%= enum_label(incident, :severity) %> olayda <%= incident.update_interval.in_minutes.to_i %> dakikadır güncelleme yazılmadı
+      (son: <%= mono_time(incident.last_update_at) %>).
+    </div>
+  <% end %>
+  <% if incident.postmortem_overdue? %>
+    <div class="banner" role="status">
+      <strong>Postmortem gecikti.</strong>
+      Son tarih <%= mono_time(incident.postmortem_due_at) %> idi.
+      <%= link_to "Postmortem yaz", edit_incident_postmortem_path(incident) %>
+    </div>
+  <% end %>
+</div>

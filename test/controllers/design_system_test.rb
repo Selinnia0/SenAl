@@ -29,7 +29,7 @@ class DesignSystemTest < ActionDispatch::IntegrationTest
 
   test "uygulama kabuğu: sidebar, üst bar, vurgulu 'Olay ilan et', fontlar; Pico yok" do
     sign_in_as users(:manager)
-    get root_path
+    get dashboard_path
 
     assert_select "aside.sidebar nav.sidebar__nav"
     assert_select "aside.sidebar .logo"

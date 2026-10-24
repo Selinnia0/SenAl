@@ -13,7 +13,7 @@ class RegistrationsController < ApplicationController
 
     if @user.save
       start_new_session_for @user
-      redirect_to root_path, notice: "Hoş geldiniz, #{@user.name}."
+      redirect_to dashboard_path, notice: "Hoş geldiniz, #{@user.name}."
     else
       render :new, status: :unprocessable_entity
     end

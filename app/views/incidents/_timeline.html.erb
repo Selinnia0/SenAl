@@ -1,0 +1,4 @@
+<%# locals: (incident:) -%>
+<div id="timeline">
+  <%= render "components/timeline", items: timeline_items(incident).reverse %>
+</div>

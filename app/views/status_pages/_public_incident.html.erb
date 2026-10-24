@@ -1,0 +1,27 @@
+<%# Halka açık görünüm: başlık, servis ve yalnızca yayınlanmış durum sayfası güncellemeleri. İç notlar yok. %>
+<%# locals: (incident:) -%>
+<% state = StatusPage.state_for(incident) %>
+<article class="card public-incident">
+  <div class="row">
+    <%= badge(state == :major ? "Büyük kesinti" : "Kısmi kesinti", tone: (state == :major ? :critical : :major)) %>
+    <span class="muted"><%= incident.service.name %></span>
+    <% if incident.resolved_at %><%= badge("Çözüldü", tone: :ok) %><% end %>
+  </div>
+  <h3><%= incident.title %></h3>
+  <% if incident.status_page_updates.any? %>
+    <ol class="timeline">
+      <% incident.status_page_updates.reverse_each do |update| %>
+        <li class="timeline__item<%= " timeline__item--ok" if update.public_resolved? %>">
+          <span class="timeline__dot" aria-hidden="true"></span>
+          <div class="timeline__meta">
+            <span class="timeline__time"><%= mono_time(update.published_at) %></span>
+            <%= public_status_badge(update) %>
+          </div>
+          <p class="timeline__body"><%= update.message %></p>
+        </li>
+      <% end %>
+    </ol>
+  <% else %>
+    <p class="muted">Sorunun farkındayız ve inceliyoruz.</p>
+  <% end %>
+</article>

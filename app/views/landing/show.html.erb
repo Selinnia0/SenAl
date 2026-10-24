@@ -1,0 +1,58 @@
+<% content_for :title, "Nöbet ve olay yönetimi" %>
+
+<section class="hero">
+  <div class="hero__inner">
+    <span class="eyebrow eyebrow--inverse">Üniversite BT birimleri ve laboratuvarlar için</span>
+    <h1>Ben yapamıyorum,<br>sen al.</h1>
+    <p class="hero__lead">
+      Alarm gelir, o an nöbette olan kişi çağrılır. Cevap gelmezse sıradakine geçer. Olay ilan edilir,
+      ekip zaman çizelgesine yazar, öğrenciler durum sayfasından haberdar olur. Vize haftasında kimse
+      "ben bakarım" demek zorunda kalmaz: sistem müsait olmayanı kendisi atlar.
+    </p>
+    <div class="hero__actions">
+      <% if authenticated? %>
+        <%= link_to "Panoya git", dashboard_path, class: btn_class(:accent) %>
+      <% else %>
+        <%= link_to "Giriş yap", new_session_path, class: btn_class(:accent) %>
+      <% end %>
+      <%= link_to "Durum sayfasını gör", status_page_path, class: "btn btn--inverse" %>
+    </div>
+  </div>
+</section>
+
+<section class="modules">
+  <div class="modules__inner">
+    <span class="eyebrow">Dört modül, tek akış</span>
+    <h2>Gece 03:00'te bile kimin bakacağı belli.</h2>
+    <div class="card-grid">
+      <article class="card">
+        <span class="eyebrow">01</span>
+        <h3>Nöbet</h3>
+        <p>Haftalık rotasyon, elle devir ve eskalasyon. İzin bir kez girilir; sınav haftası ve bayram tüm takvimlerde otomatik atlanır.</p>
+      </article>
+      <article class="card">
+        <span class="eyebrow">02</span>
+        <h3>Olay yönetimi</h3>
+        <p>Alarmdan olay ilan edilir: önem, olay lideri, iletişim sorumlusu. Ekip zaman çizelgesine yazar; 30 dakika sessiz kalırsa hatırlatılır.</p>
+      </article>
+      <article class="card">
+        <span class="eyebrow">03</span>
+        <h3>Durum sayfası</h3>
+        <p>Öğrenciler ve personel giriş yapmadan neyin bozuk olduğunu görür. Olay çözülünce sayfa kendiliğinden güncellenir.</p>
+      </article>
+      <article class="card">
+        <span class="eyebrow">04</span>
+        <h3>Post-incident</h3>
+        <p>Postmortem ve takip görevleri tamamlanmadan olay kapanmaz. Aynı sorun ikinci kez sürpriz olmasın.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="closing">
+  <div class="closing__inner">
+    <h2>Nöbeti devretmenin adı: sen al.</h2>
+    <p>Kimse sınav kâğıdı okurken telefonla uyandırılmasın.</p>
+    <%= link_to (authenticated? ? "Panoya git" : "Hemen başla"), (authenticated? ? dashboard_path : new_session_path), class: "btn btn--inverse" %>
+  </div>
+</section>

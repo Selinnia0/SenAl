@@ -1,0 +1,38 @@
+<% content_for :title, "Durum sayfası" %>
+
+<div class="status-page">
+  <header class="status-page__header">
+    <span class="eyebrow">Durum sayfası · <%= mono_time(Time.current) %></span>
+    <h1><%= @status_page.headline %></h1>
+    <% if @status_page.operational? %>
+      <p class="muted">Şu an bilinen bir kesinti yok.</p>
+    <% end %>
+  </header>
+
+  <% if @status_page.active_incidents.any? %>
+    <section aria-labelledby="active-heading">
+      <h2 id="active-heading" class="visually-hidden">Aktif olaylar</h2>
+      <% @status_page.active_incidents.each do |incident| %>
+        <%= render "status_pages/public_incident", incident: incident %>
+      <% end %>
+    </section>
+  <% end %>
+
+  <section class="card" aria-labelledby="services-heading">
+    <h2 id="services-heading" class="card__title">Servisler</h2>
+    <% @status_page.rows.each do |row| %>
+      <%= render "components/status_indicator", name: row.service.name, state: row.state, days: row.days %>
+    <% end %>
+  </section>
+
+  <section class="history" aria-labelledby="history-heading">
+    <h2 id="history-heading">Son 7 gün</h2>
+    <% if @status_page.history.any? %>
+      <% @status_page.history.each do |incident| %>
+        <%= render "status_pages/public_incident", incident: incident %>
+      <% end %>
+    <% else %>
+      <p class="muted">Son 7 günde çözülmüş bir olay yok.</p>
+    <% end %>
+  </section>
+</div>

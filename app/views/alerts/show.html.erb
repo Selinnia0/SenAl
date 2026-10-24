@@ -34,6 +34,7 @@
 
   <% if @alert.can_acknowledge? || @alert.can_resolve? %>
     <footer class="inline-actions">
+      <%= link_to "Olay ilan et", new_incident_path(alert_id: @alert.id), class: btn_class(:primary) %>
       <% if @alert.can_acknowledge? %>
         <%= button_to "Gördüm", acknowledge_alert_path(@alert) %>
       <% end %>

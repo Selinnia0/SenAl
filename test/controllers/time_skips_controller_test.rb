@@ -31,7 +31,7 @@ class TimeSkipsControllerTest < ActionDispatch::IntegrationTest
     alert = alerts(:triggered)
 
     post time_skip_path, params: { time_skip: { minutes: 5 } }
-    assert_redirected_to root_path
+    assert_redirected_to dashboard_path
     assert_equal 0, alert.reload.current_level
   end
 
@@ -45,14 +45,14 @@ class TimeSkipsControllerTest < ActionDispatch::IntegrationTest
       assert_response :not_found
       assert_equal 0, alerts(:triggered).reload.current_level
 
-      get root_path
+      get dashboard_path
       assert_select "nav a", text: "Zaman sıçraması", count: 0
     end
   end
 
   test "özellik açıkken manager menüsünde görünür" do
     sign_in_as users(:manager)
-    get root_path
+    get dashboard_path
     assert_select "nav a", text: "Zaman sıçraması"
   end
 

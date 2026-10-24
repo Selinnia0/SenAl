@@ -1,6 +1,6 @@
 class NotificationsController < ApplicationController
   def index
-    @notifications = Current.user.notifications.unread.includes(:alert).order(created_at: :desc)
+    @notifications = Current.user.notifications.unread.includes(:alert, :incident).order(created_at: :desc)
   end
 
   def read

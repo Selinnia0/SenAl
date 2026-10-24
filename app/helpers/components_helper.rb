@@ -52,10 +52,4 @@ module ComponentsHelper
     content = count ? safe_join([ "#{label} ", tag.span("(#{count})", class: "sidebar__count") ]) : label
     link_to content, path, class: "sidebar__link", aria: { current: (current_page?(path) ? "page" : nil) }
   end
-
-  # Henüz ekranı olmayan bölüm (Faz E): menüde yeri görünsün ama tıklanamasın.
-  def sidebar_soon(label)
-    tag.span(safe_join([ label, tag.span("yakında", class: "sidebar__count") ]),
-             class: "sidebar__link sidebar__link--soon", aria: { disabled: true })
-  end
 end

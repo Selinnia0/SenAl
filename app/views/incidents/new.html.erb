@@ -1,0 +1,65 @@
+<% content_for :title, "Olay ilan et" %>
+
+<%= render layout: "components/page_header", locals: { eyebrow: "Müdahale", title: "Olay ilan et",
+      lead: "Önem ve olay lideri zorunlu. Lider önerisi, servisin şu anki müsait nöbetçisidir." } do %>
+  <%= link_to "Vazgeç", incidents_path, class: btn_class(:ghost) %>
+<% end %>
+
+<div class="card" style="max-width: 720px">
+  <%= render "shared/errors", record: @incident %>
+
+  <%= form_with model: @incident, url: incidents_path, scope: :incident do |form| %>
+    <% if @incident.alert %>
+      <%= form.hidden_field :alert_id %>
+      <div class="banner banner--info">Alarm <span class="mono">#<%= @incident.alert.id %></span>'den ilan ediliyor; alarm sizin adınıza "Gördüm" olacak ve eskalasyon duracak.</div>
+    <% end %>
+
+    <div class="field">
+      <%= form.label :service_id, "Servis" %>
+      <%= form.collection_select :service_id, @services, :id, :name %>
+    </div>
+
+    <div class="field">
+      <%= form.label :title, "Başlık" %>
+      <%= form.text_field :title, required: true, placeholder: "ör. Öğrenci girişi tamamen kapalı" %>
+      <p class="field__hint">Kısa ve somut: ne bozuk, kimi etkiliyor.</p>
+    </div>
+
+    <div class="field">
+      <%= form.label :summary, "Özet" %>
+      <%= form.text_area :summary, rows: 3 %>
+    </div>
+
+    <div class="field">
+      <%= form.label :severity, "Önem" %>
+      <%= form.select :severity, Incident.severities.keys.map { |severity| [ t("enums.incident.severity.#{severity}"), severity ] } %>
+    </div>
+
+    <div class="field">
+      <%= label_tag "incident_lead_id", "Olay lideri" %>
+      <%= select_tag "incident[lead_id]", options_from_collection_for_select(@users, :id, :name, @selected_lead_id),
+                     include_blank: "Seçin…", id: "incident_lead_id" %>
+      <p class="field__hint">
+        <% if @suggested_lead %>
+          Önerilen: <strong><%= @suggested_lead.name %></strong> (servisin şu anki nöbetçisi).
+        <% else %>
+          Önerilen lider yok: şu anki nöbetçi izinli ya da akademik kapanma döneminde.
+        <% end %>
+      </p>
+    </div>
+
+    <div class="field">
+      <%= label_tag "incident_communications_id", "İletişim sorumlusu (isteğe bağlı)" %>
+      <%= select_tag "incident[communications_id]", options_from_collection_for_select(@users, :id, :name),
+                     include_blank: "Yok", id: "incident_communications_id" %>
+    </div>
+
+    <div class="field">
+      <label class="row" style="font-weight: 400">
+        <%= form.check_box :public_impact %> Halka açık etkisi var (durum sayfasında görünür)
+      </label>
+    </div>
+
+    <%= form.submit "Olayı ilan et", class: btn_class(:accent) %>
+  <% end %>
+</div>

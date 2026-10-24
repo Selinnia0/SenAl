@@ -15,7 +15,7 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
       } }
     end
 
-    assert_redirected_to root_path
+    assert_redirected_to dashboard_path
     assert cookies[:session_id].present?
     user = User.find_by!(email_address: "can@example.com")
     assert user.responder?

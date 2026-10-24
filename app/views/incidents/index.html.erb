@@ -1,0 +1,29 @@
+<% content_for :title, "Olaylar" %>
+<% content_for :head do %><%= turbo_refreshes_with method: :morph, scroll: :preserve %><% end %>
+<%= turbo_stream_from :incidents %>
+
+<%= render layout: "components/page_header", locals: { eyebrow: "Müdahale", title: "Olaylar",
+      lead: (@query.present? ? "\"#{@query}\" için sonuçlar" : nil) } do %>
+  <%= link_to "Yeni olay", new_incident_path, class: btn_class(:primary) %>
+<% end %>
+
+<div class="filters" aria-label="Durum filtresi">
+  <%= filter_pill "Aktif", { severity: @severity, q: @query.presence }, @status.nil? %>
+  <% Incident.statuses.each_key do |status| %>
+    <%= filter_pill t("enums.incident.status.#{status}"), { status: status, severity: @severity, q: @query.presence }, @status == status %>
+  <% end %>
+  <%= filter_pill "Tümü", { status: "all", severity: @severity, q: @query.presence }, @status == "all" %>
+</div>
+<div class="filters" aria-label="Önem filtresi">
+  <%= filter_pill "Her önem", { status: @status, q: @query.presence }, @severity.nil? %>
+  <% Incident.severities.each_key do |severity| %>
+    <%= filter_pill t("enums.incident.severity.#{severity}"), { status: @status, severity: severity, q: @query.presence }, @severity == severity %>
+  <% end %>
+</div>
+
+<% if @incidents.any? %>
+  <%= render "incidents/table", incidents: @incidents %>
+<% else %>
+  <%= render "components/empty_state", message: "Şu an her şey yolunda.", action_label: "Olay ilan et",
+             action_path: new_incident_path, action_variant: :secondary %>
+<% end %>

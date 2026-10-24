@@ -5,12 +5,12 @@ class BlackoutPeriodsControllerTest < ActionDispatch::IntegrationTest
     sign_in_as users(:bob)
 
     get blackout_periods_path
-    assert_redirected_to root_path
+    assert_redirected_to dashboard_path
 
     assert_no_difference -> { BlackoutPeriod.count } do
       post blackout_periods_path, params: { blackout_period: valid_params }
     end
-    assert_redirected_to root_path
+    assert_redirected_to dashboard_path
   end
 
   test "manager akademik dönem ekler, düzenler ve siler" do

@@ -1,9 +1,6 @@
-<%# Flash mesajları sağ üstte toast. Faz E'de Turbo Stream ile de eklenecek (id="toasts"). %>
+<%# Flash mesajları sağ üstte toast. Turbo Stream yanıtları da buraya ekler (id="toasts"). %>
 <div class="toasts" id="toasts">
   <% flash.each do |type, message| %>
-    <div role="alert" class="toast toast--<%= type %> flash-<%= type %>" data-controller="toast">
-      <div class="toast__body"><%= message %></div>
-      <button type="button" class="toast__close" data-action="toast#dismiss" aria-label="Kapat">×</button>
-    </div>
+    <%= render "components/toast", type: type, message: message %>
   <% end %>
 </div>

@@ -210,3 +210,24 @@
   .token { display: flex; align-items: center; gap: var(--sa-space-2); font-size: var(--sa-text-xs); }
   .token__swatch { width: 32px; height: 32px; border-radius: var(--sa-radius-sm); border: 1px solid var(--sa-border); flex: none; }
 }
+
+/* Faz E ekran bileşenleri */
+@layer components {
+  /* Koyu zemin üzerinde buton ve eyebrow (hero, kapanış) */
+  .btn--inverse { background: transparent; color: var(--sa-ink-inverse); border-color: rgba(248,245,240,.45); }
+  .btn--inverse:hover { background: rgba(248,245,240,.12); color: var(--sa-ink-inverse); }
+  .eyebrow--inverse { color: #CFC8BD; } /* kömür zeminde 10.9:1 */
+
+  .incident-title { font-size: var(--sa-text-2xl); margin-bottom: var(--sa-space-3); }
+  .incident-summary { font-size: var(--sa-text-lg); color: var(--sa-ink-muted); max-width: 65ch; }
+
+  .plain-list { list-style: none; margin: 0 0 var(--sa-space-4); padding: 0; display: flex; flex-direction: column; gap: var(--sa-space-3);
+                font-size: var(--sa-text-sm); }
+  .roles { margin: 0 0 var(--sa-space-4); }
+  .roles dd { font-weight: 500; }
+  .transitions form { display: block; }
+  .transitions .btn { width: 100%; }
+
+  aside .card select, aside .card textarea, aside .card input { margin-bottom: var(--sa-space-2); }
+  aside .card .btn { margin-top: var(--sa-space-1); }
+}

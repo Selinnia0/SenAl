@@ -6,16 +6,16 @@ class ServicesControllerTest < ActionDispatch::IntegrationTest
     service = services(:sis)
 
     get services_path
-    assert_redirected_to root_path
+    assert_redirected_to dashboard_path
     get service_path(service)
-    assert_redirected_to root_path
+    assert_redirected_to dashboard_path
     get new_service_path
-    assert_redirected_to root_path
+    assert_redirected_to dashboard_path
 
     assert_no_difference -> { Service.count } do
       post services_path, params: { service: { name: "Sinsi", escalation_policy_id: escalation_policies(:default).id } }
     end
-    assert_redirected_to root_path
+    assert_redirected_to dashboard_path
 
     delete service_path(service)
     assert Service.exists?(service.id)
@@ -101,7 +101,7 @@ class ServiceTestAlertTest < ActionDispatch::IntegrationTest
     assert_no_difference -> { Alert.count } do
       post test_alert_service_path(@service), params: { alert: { summary: "Sinsi", severity: "critical" } }
     end
-    assert_redirected_to root_path
+    assert_redirected_to dashboard_path
   end
 
   test "servis sayfasında deneme alarmı formu var" do

@@ -7,6 +7,6 @@ module ManagerOnly
 
   private
     def require_manager
-      redirect_to root_path, alert: "Bu sayfa yalnızca yöneticiler içindir." unless Current.user&.manager?
+      redirect_to dashboard_path, alert: "Bu sayfa yalnızca yöneticiler içindir." unless Current.user&.manager?
     end
 end

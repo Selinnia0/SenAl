@@ -24,8 +24,6 @@
   }
   .sidebar__link:hover { background: var(--sa-bg); color: var(--sa-ink); }
   .sidebar__link[aria-current="page"] { background: var(--sa-surface); color: var(--sa-ink); box-shadow: var(--sa-shadow-card); }
-  .sidebar__link--soon { color: var(--sa-ink-subtle); cursor: default; }
-  .sidebar__link--soon:hover { background: none; color: var(--sa-ink-subtle); }
   .sidebar__count { font-family: var(--sa-font-mono); font-size: var(--sa-text-xs); color: var(--sa-ink-muted); }
   .sidebar__user { border-top: 1px solid var(--sa-border); padding-top: var(--sa-space-4); font-size: var(--sa-text-sm); }
   .sidebar__user-name { font-weight: 500; }
@@ -71,5 +69,49 @@
     .topbar__search { max-width: none; flex-basis: 100%; order: 2; }
     .main { padding: var(--sa-space-6) var(--sa-space-4); }
     .detail-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+}
+
+/* Halka açık sayfalar: landing ve durum sayfası */
+@layer layout {
+  .public-header { border-bottom: 1px solid var(--sa-border); background: var(--sa-bg); }
+  .public-header__inner, .public-footer__inner, .modules__inner, .closing__inner, .hero__inner {
+    max-width: var(--sa-content-max); margin: 0 auto; padding-left: var(--sa-space-6); padding-right: var(--sa-space-6);
+  }
+  .public-header__inner { display: flex; align-items: center; justify-content: space-between; gap: var(--sa-space-4);
+                          min-height: 64px; flex-wrap: wrap; }
+  .public-header__nav { display: flex; align-items: center; gap: var(--sa-space-4); font-size: var(--sa-text-sm); }
+
+  .hero { background: var(--sa-ink); color: var(--sa-ink-inverse); }
+  .hero__inner { padding-top: var(--sa-space-24); padding-bottom: var(--sa-space-24); }
+  .hero h1 { color: var(--sa-ink-inverse); font-size: var(--sa-text-4xl); max-width: 14ch; margin-bottom: var(--sa-space-6); }
+  .hero__lead { font-size: var(--sa-text-lg); color: #D9D3C8; max-width: 60ch; } /* kömür zeminde 12.1:1 */
+  .hero__actions { display: flex; flex-wrap: wrap; gap: var(--sa-space-3); margin-top: var(--sa-space-8); }
+
+  .modules { padding: var(--sa-space-16) 0; }
+  .modules h2 { font-size: var(--sa-text-3xl); margin-top: 0; max-width: 20ch; margin-bottom: var(--sa-space-8); }
+  .modules .card { margin-bottom: 0; }
+  .modules .card h3 { font-size: var(--sa-text-xl); margin-top: 0; }
+
+  .closing { background: var(--sa-deep); color: var(--sa-ink-inverse); }
+  .closing__inner { padding-top: var(--sa-space-16); padding-bottom: var(--sa-space-16); }
+  .closing h2 { color: var(--sa-ink-inverse); font-size: var(--sa-text-3xl); margin-top: 0; }
+  .closing p { color: #E8D9DC; } /* bordo zeminde 11.1:1 */
+
+  .public-footer { border-top: 1px solid var(--sa-border); padding: var(--sa-space-6) 0; font-size: var(--sa-text-sm); color: var(--sa-ink-muted); }
+  .public-footer__inner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--sa-space-2); }
+
+  .status-page { max-width: 820px; margin: 0 auto; padding: var(--sa-space-12) var(--sa-space-6) var(--sa-space-16); }
+  .status-page__header h1 { font-size: var(--sa-text-3xl); }
+  .status-page .history { margin-top: var(--sa-space-8); }
+
+  @media (max-width: 860px) {
+    .hero__inner { padding-top: var(--sa-space-12); padding-bottom: var(--sa-space-12); }
+    .hero h1 { font-size: var(--sa-text-3xl); }
+    .modules h2, .closing h2, .status-page__header h1 { font-size: var(--sa-text-2xl); }
+    .public-header__inner, .public-footer__inner, .modules__inner, .closing__inner, .hero__inner {
+      padding-left: var(--sa-space-4); padding-right: var(--sa-space-4);
+    }
+    .status-page { padding: var(--sa-space-8) var(--sa-space-4); }
   }
 }

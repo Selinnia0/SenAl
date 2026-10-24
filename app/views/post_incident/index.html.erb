@@ -1,0 +1,45 @@
+<% content_for :title, "Post-incident" %>
+
+<%= render layout: "components/page_header", locals: { eyebrow: "Müdahale", title: "Post-incident",
+      lead: "Postmortem ve takip görevleri tamamlanmadan olay kapanmaz. Critical/major olayda postmortem 5 gün içinde yayınlanmalı." } do %>
+<% end %>
+
+<h2 style="margin-top: 0">Çözülmüş olaylar</h2>
+<% if @incidents.any? %>
+  <%= render layout: "components/table", locals: { headers: [ "Kimlik", "Başlık", "Önem", "Durum", "Postmortem", "Açık görev", "Çözülme" ] } do %>
+    <% @incidents.each do |incident| %>
+      <tr>
+        <td class="mono"><%= link_to incident_ref(incident), incident %></td>
+        <td><%= link_to incident.title, incident %></td>
+        <td><%= severity_badge(incident) %></td>
+        <td><%= incident_status_badge(incident) %></td>
+        <td>
+          <% if incident.postmortem&.published? %><%= badge("Yayınlandı", tone: :ok) %>
+          <% elsif incident.postmortem_overdue? %><%= badge("Gecikti", tone: :critical) %>
+          <% elsif incident.postmortem_required? %><%= badge("Bekliyor", tone: :major) %>
+          <% else %><%= badge("Gerekmiyor", tone: :neutral) %><% end %>
+        </td>
+        <td><%= incident.follow_ups.count { |follow_up| !follow_up.completed? } %></td>
+        <td><%= mono_time(incident.resolved_at) %></td>
+      </tr>
+    <% end %>
+  <% end %>
+<% else %>
+  <%= render "components/empty_state", message: "Henüz çözülmüş olay yok." %>
+<% end %>
+
+<h2>Açık takip görevleri</h2>
+<% if @open_follow_ups.any? %>
+  <%= render layout: "components/table", locals: { headers: [ "Görev", "Sorumlu", "Son tarih", "Olay" ] } do %>
+    <% @open_follow_ups.each do |follow_up| %>
+      <tr>
+        <td><%= follow_up.title %></td>
+        <td><%= follow_up.owner.name %></td>
+        <td class="mono"><%= follow_up.due_on ? l(follow_up.due_on, format: :compact) : "—" %></td>
+        <td><%= link_to incident_ref(follow_up.incident), follow_up.incident %></td>
+      </tr>
+    <% end %>
+  <% end %>
+<% else %>
+  <p class="muted">Açık takip görevi yok.</p>
+<% end %>

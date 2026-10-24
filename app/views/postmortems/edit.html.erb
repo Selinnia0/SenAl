@@ -1,0 +1,25 @@
+<% content_for :title, "Postmortem · #{incident_ref(@incident)}" %>
+
+<%= render layout: "components/page_header", locals: { eyebrow: "Post-incident · #{incident_ref(@incident)}",
+      title: "Postmortem", lead: @incident.title } do %>
+  <%= link_to "Olaya dön", incident_path(@incident), class: btn_class(:ghost) %>
+<% end %>
+
+<div class="card" style="max-width: 860px">
+  <%= render "shared/errors", record: @postmortem %>
+  <% if @postmortem.published? %>
+    <p><%= badge("Yayınlandı", tone: :ok) %> <%= mono_time(@postmortem.published_at) %></p>
+  <% end %>
+
+  <%= form_with model: @postmortem, url: incident_postmortem_path(@incident), method: :patch do |form| %>
+    <%= form.label :body, "Ne oldu, neden oldu, neyi değiştiriyoruz?" %>
+    <%= form.text_area :body, rows: 14, placeholder: "Özet\n\nZaman çizelgesi\n\nKök neden\n\nNe iyi gitti / ne gitmedi\n\nTakip görevleri" %>
+    <div class="row" style="margin-top: var(--sa-space-4)">
+      <%= form.submit "Taslağı kaydet", class: btn_class(:secondary) %>
+    </div>
+  <% end %>
+
+  <% unless @postmortem.published? %>
+    <%= button_to "Yayınla", publish_incident_postmortem_path(@incident), class: btn_class(:primary) %>
+  <% end %>
+</div>

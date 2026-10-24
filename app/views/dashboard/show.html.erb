@@ -1,0 +1,51 @@
+<% content_for :title, "Pano" %>
+<% content_for :head do %><%= turbo_refreshes_with method: :morph, scroll: :preserve %><% end %>
+<%= turbo_stream_from :incidents %>
+
+<%= render layout: "components/page_header", locals: { eyebrow: "Pano · #{l(Date.current, format: :compact)}", title: "SenAl",
+      lead: "Şu an kim nöbette, ne açık, önümüzde boşluk var mı." } do %>
+  <%= link_to "Durum sayfası", status_page_path, class: btn_class(:secondary) %>
+<% end %>
+
+<h2 style="margin-top: 0">Aktif olaylar</h2>
+<% if @active_incidents.any? %>
+  <%= render "incidents/table", incidents: @active_incidents %>
+<% else %>
+  <%= render "components/empty_state", message: "Şu an her şey yolunda." %>
+<% end %>
+
+<div class="card-grid" style="margin-top: var(--sa-space-8)">
+  <%= render layout: "components/card", locals: { title: "Şu an nöbetçi" } do %>
+    <table class="table">
+      <thead><tr><th scope="col">Takvim</th><th scope="col">Nöbetçi</th></tr></thead>
+      <tbody>
+        <% @on_calls.each do |schedule, user| %>
+          <tr class="<%= "gap" unless user %>">
+            <td><%= link_to schedule.name, schedule %></td>
+            <td><%= user ? user.name : "Boşluk — müsait nöbetçi yok" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+
+  <% if @gap_report.findings.any? %>
+    <%= render layout: "components/card", locals: { title: "Önümüzdeki 7 günde nöbet boşlukları" } do %>
+      <ul class="plain-list">
+        <% @gap_report.findings.each do |schedule, gaps| %>
+          <li>
+            <%= badge("Boşluk", tone: :critical) %> <%= link_to schedule.name, schedule %><br>
+            <span class="mono"><%= gaps.map { |gap| "#{format_time(gap.begin)} – #{format_time(gap.end)}" }.join(", ") %></span>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  <% end %>
+</div>
+
+<h2>Açık alarmlar</h2>
+<% if @open_alerts.any? %>
+  <%= render "alerts/table", alerts: @open_alerts %>
+<% else %>
+  <p class="muted">Açık alarm yok.</p>
+<% end %>

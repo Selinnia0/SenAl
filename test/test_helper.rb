@@ -1,6 +1,7 @@
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
+require "turbo/broadcastable/test_helper" # assert_turbo_stream_broadcasts
 require_relative "test_helpers/session_test_helper"
 
 module ActiveSupport

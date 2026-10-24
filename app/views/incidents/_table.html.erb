@@ -1,0 +1,18 @@
+<%# locals: (incidents:) -%>
+<%= render layout: "components/table", locals: { headers: [ "Kimlik", "Başlık", "Servis", "Önem", "Durum", "Lider", "İlan", "Son güncelleme" ] } do %>
+  <% incidents.each do |incident| %>
+    <tr>
+      <td class="mono"><%= link_to incident_ref(incident), incident %></td>
+      <td><%= link_to incident.title, incident %></td>
+      <td><%= incident.service.name %></td>
+      <td><%= severity_badge(incident) %></td>
+      <td><%= incident_status_badge(incident) %></td>
+      <td><%= incident.lead&.name || "—" %></td>
+      <td><%= mono_time(incident.declared_at) %></td>
+      <td>
+        <%= mono_time(incident.last_update_at) %>
+        <% if incident.update_overdue? %><%= badge("Gecikti", tone: :critical) %><% end %>
+      </td>
+    </tr>
+  <% end %>
+<% end %>

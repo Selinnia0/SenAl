@@ -1,0 +1,138 @@
+<% content_for :title, "#{incident_ref(@incident)} #{@incident.title}" %>
+<% content_for :head do %><%= turbo_refreshes_with method: :morph, scroll: :preserve %><% end %>
+<%= turbo_stream_from @incident %>
+
+<div class="detail-grid">
+  <div>
+    <span class="eyebrow"><%= incident_ref(@incident) %> · <%= @incident.service.name %> · ilan <%= mono_time(@incident.declared_at) %></span>
+    <h1 class="incident-title"><%= @incident.title %></h1>
+    <div class="row" style="margin-bottom: var(--sa-space-4)">
+      <%= severity_badge(@incident) %>
+      <%= incident_status_badge(@incident) %>
+      <% if @incident.public_impact? %><%= badge("Halka açık", tone: :accent) %><% end %>
+    </div>
+
+    <%= render "incidents/banners", incident: @incident %>
+
+    <% if @incident.summary.present? %>
+      <p class="incident-summary"><%= @incident.summary %></p>
+    <% end %>
+
+    <div class="card">
+      <%= render "incidents/update_form", incident: @incident %>
+    </div>
+
+    <h2>Zaman çizelgesi</h2>
+    <%= render "incidents/timeline", incident: @incident %>
+  </div>
+
+  <aside aria-label="Olay paneli">
+    <%= render layout: "components/card", locals: { title: "Durum" } do %>
+      <% if @incident.available_transitions.any? %>
+        <div class="transitions stack">
+          <% @incident.available_transitions.each do |to| %>
+            <%= button_to transition_label(@incident, to), transition_incident_path(@incident, to: to),
+                          class: btn_class(transition_variant(@incident, to), block: true) %>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="muted">Olay <%= enum_label(@incident, :status).downcase %>; başka geçiş yok.</p>
+      <% end %>
+    <% end %>
+
+    <%= render layout: "components/card", locals: { title: "Roller" } do %>
+      <dl class="roles">
+        <dt>Olay lideri</dt>
+        <dd><%= @incident.lead&.name || "—" %></dd>
+        <dt>İletişim sorumlusu</dt>
+        <dd><%= @incident.communications_lead&.name || "—" %></dd>
+      </dl>
+      <% unless @incident.final? %>
+        <%= form_with url: incident_role_assignments_path(@incident) do |form| %>
+          <div class="row">
+            <%= select_tag :role, options_for_select(IncidentRoleAssignment.roles.keys.map { |role| [ t("enums.incident_role_assignment.role.#{role}"), role ] }), "aria-label": "Rol" %>
+            <%= select_tag :user_id, options_from_collection_for_select(@users, :id, :name), "aria-label": "Kişi" %>
+          </div>
+          <%= form.submit "Ata", class: btn_class(:secondary, size: :sm) %>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <% unless @incident.final? %>
+      <%= render layout: "components/card", locals: { title: "Önem" } do %>
+        <%= form_with url: severity_incident_path(@incident), method: :patch do |form| %>
+          <%= select_tag :severity, options_for_select(Incident.severities.keys.map { |severity| [ t("enums.incident.severity.#{severity}"), severity ] }, @incident.severity), "aria-label": "Önem" %>
+          <%= form.submit "Güncelle", class: btn_class(:secondary, size: :sm) %>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <%= render layout: "components/card", locals: { title: "Durum sayfası" } do %>
+      <% if @incident.public_impact? %>
+        <% if @incident.status_page_updates.any? %>
+          <ul class="plain-list">
+            <% @incident.status_page_updates.reverse_each do |update| %>
+              <li><%= public_status_badge(update) %> <%= mono_time(update.published_at) %><br><%= update.message %></li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p class="muted">Henüz yayın yok. Halka açık olay, durum sayfası güncellemesi yayınlanmadan çözülemez.</p>
+        <% end %>
+        <% unless @incident.final? %>
+          <%= form_with url: incident_status_page_updates_path(@incident) do |form| %>
+            <%= select_tag :public_status, options_for_select(StatusPageUpdate.public_statuses.keys.map { |status| [ t("enums.status_page_update.public_status.#{status}"), status ] }), "aria-label": "Halka açık durum" %>
+            <%= text_area_tag :message, nil, rows: 2, required: true, "aria-label": "Halka açık mesaj", placeholder: "Öğrencilere ne söylüyoruz?" %>
+            <%= form.submit "Yayınla", class: btn_class(:secondary, size: :sm) %>
+          <% end %>
+        <% end %>
+        <p class="muted" style="margin-top: var(--sa-space-3)"><%= link_to "Durum sayfasını aç", status_page_path %></p>
+      <% else %>
+        <p class="muted">İç olay; durum sayfasında görünmez.</p>
+      <% end %>
+    <% end %>
+
+    <%= render layout: "components/card", locals: { title: "Takip görevleri" } do %>
+      <% if @incident.follow_ups.any? %>
+        <ul class="plain-list">
+          <% @incident.follow_ups.includes(:owner).order(:id).each do |follow_up| %>
+            <li class="row">
+              <%= badge(follow_up.completed? ? "Tamam" : "Açık", tone: (follow_up.completed? ? :ok : :neutral)) %>
+              <span><%= follow_up.title %> · <span class="muted"><%= follow_up.owner.name %></span></span>
+              <% unless follow_up.completed? %>
+                <%= button_to "Tamamla", complete_incident_follow_up_path(@incident, follow_up), method: :patch, class: btn_class(:ghost, size: :sm) %>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="muted">Takip görevi yok.</p>
+      <% end %>
+      <%= form_with model: FollowUp.new, url: incident_follow_ups_path(@incident), scope: :follow_up do |form| %>
+        <%= form.text_field :title, required: true, placeholder: "ör. Disk alarm eşiğini %80'e çek", "aria-label": "Görev" %>
+        <%= form.collection_select :owner_id, @users, :id, :name, {}, "aria-label": "Sorumlu" %>
+        <%= form.date_field :due_on, "aria-label": "Son tarih" %>
+        <%= form.submit "Ekle", class: btn_class(:secondary, size: :sm) %>
+      <% end %>
+    <% end %>
+
+    <%= render layout: "components/card", locals: { title: "Postmortem" } do %>
+      <% if @incident.postmortem&.published? %>
+        <p><%= badge("Yayınlandı", tone: :ok) %> <%= mono_time(@incident.postmortem.published_at) %></p>
+      <% elsif @incident.postmortem_required? %>
+        <p class="muted">
+          <%= enum_label(@incident, :severity) %> olayda kapanış için zorunlu.
+          <% if @incident.postmortem_due_at %>Son tarih: <%= mono_time(@incident.postmortem_due_at) %>.<% end %>
+        </p>
+      <% else %>
+        <p class="muted">Küçük olayda zorunlu değil.</p>
+      <% end %>
+      <%= link_to (@incident.postmortem ? "Postmortem'i aç" : "Postmortem yaz"), edit_incident_postmortem_path(@incident), class: btn_class(:secondary, size: :sm) %>
+    <% end %>
+
+    <% if @incident.alert %>
+      <%= render layout: "components/card", locals: { title: "Kaynak alarm", muted: true } do %>
+        <p><%= link_to @incident.alert.title, alert_path(@incident.alert) %> <%= alert_status_badge(@incident.alert) %></p>
+      <% end %>
+    <% end %>
+  </aside>
+</div>

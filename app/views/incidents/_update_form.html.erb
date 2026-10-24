@@ -1,0 +1,12 @@
+<%# locals: (incident:) -%>
+<div id="update_form">
+  <% if incident.final? %>
+    <p class="muted">Bu olay <%= enum_label(incident, :status).downcase %>; güncelleme yazılamaz.</p>
+  <% else %>
+    <%= form_with url: incident_updates_path(incident) do |form| %>
+      <%= form.label :body, "Güncelleme yaz", for: "update_body" %>
+      <%= form.text_area :body, id: "update_body", rows: 3, required: true, placeholder: "Ne biliyoruz, ne yapıyoruz, sıradaki adım ne?" %>
+      <%= form.submit "Yayınla", class: btn_class(:primary) %>
+    <% end %>
+  <% end %>
+</div>

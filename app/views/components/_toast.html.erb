@@ -1,0 +1,5 @@
+<%# locals: (type:, message:) -%>
+<div role="alert" class="toast toast--<%= type %> flash-<%= type %>" data-controller="toast">
+  <div class="toast__body"><%= message %></div>
+  <button type="button" class="toast__close" data-action="toast#dismiss" aria-label="Kapat">×</button>
+</div>

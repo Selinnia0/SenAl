@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <%= render "layouts/head" %>
+  </head>
+
+  <body class="public">
+    <%= render "components/toasts" %>
+
+    <header class="public-header">
+      <div class="public-header__inner">
+        <%= render "components/logo", path: root_path %>
+        <nav class="public-header__nav" aria-label="Site">
+          <%= link_to "Durum sayfası", status_page_path %>
+          <% if authenticated? %>
+            <%= link_to "Panoya git", dashboard_path, class: btn_class(:primary, size: :sm) %>
+          <% else %>
+            <%= link_to "Giriş yap", new_session_path, class: btn_class(:secondary, size: :sm) %>
+          <% end %>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <%= yield %>
+    </main>
+
+    <footer class="public-footer">
+      <div class="public-footer__inner">
+        <span>SenAl · nöbet, olay yönetimi ve durum sayfası</span>
+        <span class="mono">Ben yapamıyorum, sen al.</span>
+      </div>
+    </footer>
+  </body>
+</html>

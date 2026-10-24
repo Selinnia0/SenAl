@@ -10,22 +10,22 @@
     <div class="shell">
       <aside class="sidebar" data-controller="menu" data-open="false">
         <div class="sidebar__head">
-          <%= render "components/logo", path: root_path %>
+          <%= render "components/logo", path: dashboard_path %>
           <button type="button" class="btn btn--ghost btn--sm sidebar__toggle" data-menu-target="button"
                   data-action="menu#toggle" aria-expanded="false" aria-controls="sidebar-nav">Menü</button>
         </div>
 
         <nav class="sidebar__nav" id="sidebar-nav" aria-label="Ana menü">
           <div class="sidebar__group">
-            <%= sidebar_link "Pano", root_path %>
+            <%= sidebar_link "Pano", dashboard_path %>
             <%= sidebar_link "Bildirimlerim", notifications_path, count: Current.user.notifications.unread.count %>
           </div>
 
           <div class="sidebar__group">
             <span class="eyebrow">Müdahale</span>
-            <%= sidebar_soon "Olaylar" %>
+            <%= sidebar_link "Olaylar", incidents_path %>
             <%= sidebar_link "Alarmlar", alerts_path %>
-            <%= sidebar_soon "Post-incident" %>
+            <%= sidebar_link "Post-incident", post_incident_path %>
           </div>
 
           <div class="sidebar__group">
@@ -49,7 +49,7 @@
 
           <div class="sidebar__group">
             <span class="eyebrow">Halka açık</span>
-            <%= sidebar_soon "Status page" %>
+            <%= sidebar_link "Status page", status_page_path %>
           </div>
         </nav>
 
@@ -62,11 +62,12 @@
 
       <div>
         <header class="topbar">
-          <div class="topbar__search" role="search">
-            <label for="topbar-search" class="visually-hidden">Ara</label>
-            <input id="topbar-search" type="search" placeholder="Olay ara (yakında)" disabled>
-          </div>
-          <button type="button" class="<%= btn_class(:accent) %>" disabled title="Olay ilan etme ekranı Faz E'de">Olay ilan et</button>
+          <%= form_with url: incidents_path, method: :get, class: "topbar__search", role: "search" do %>
+            <label for="topbar-search" class="visually-hidden">Olay ara</label>
+            <input id="topbar-search" type="search" name="q" placeholder="Olay ara…" value="<%= params[:q] if controller_name == "incidents" %>">
+            <input type="hidden" name="status" value="all">
+          <% end %>
+          <%= link_to "Olay ilan et", new_incident_path, class: btn_class(:accent) %>
         </header>
 
         <main class="main" id="main">

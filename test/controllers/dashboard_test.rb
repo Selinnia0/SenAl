@@ -7,7 +7,7 @@ class DashboardTest < ActionDispatch::IntegrationTest
   end
 
   test "pano her takvimin şu anki nöbetçisini ve açık olayları gösterir" do
-    get root_path
+    get dashboard_path
     assert_response :success
 
     assert_select "td", text: "BT Altyapı"
@@ -19,7 +19,7 @@ class DashboardTest < ActionDispatch::IntegrationTest
 
   test "nöbetçisi olmayan takvim boşluk olarak işaretlenir" do
     schedules(:primary).schedule_memberships.destroy_all
-    get root_path
+    get dashboard_path
     assert_select "tr.gap td", text: "BT Altyapı"
   end
 end

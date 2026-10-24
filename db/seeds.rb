@@ -70,6 +70,41 @@ ActiveRecord::Base.transaction do
             .resolve!(by: burak)
   end
 
-  puts "Seed tamam: #{User.count} kullanıcı, #{Schedule.count} takvim, #{Alert.count} alarm. " \
+  # --- v2 response katmanı: farklı aşamalarda olaylar (yalnızca ilk çalıştırmada) ---
+  # Gerçek domain metotlarıyla: ilan → güncelleme → durum sayfası → çözüm → postmortem → kapanış.
+  unless Incident.exists?
+    lead = Incident.suggested_lead(service) || manager
+
+    login_down = Incident.declare!(service: service, title: "Öğrenci girişi tamamen kapalı", severity: :critical,
+                                   summary: "SSO yanıt vermiyor; öğrenciler OBS'ye giremiyor.", public_impact: true,
+                                   lead: lead, communications: zeynep, by: manager)
+    login_down.transition_to!(:investigating, by: lead)
+    login_down.publish_status_update!(public_status: :investigating, by: zeynep,
+                                      message: "Öğrenci girişinde sorun yaşanıyor, inceliyoruz.")
+    login_down.post_update!(body: "SSO sağlayıcısının sertifikası dün gece dolmuş görünüyor.", by: lead)
+
+    registration_alert = service.alerts.find_by(dedup_key: "kayit-timeout")
+    registration = Incident.declare!(service: service, title: "Ders kaydı sayfası zaman aşımına düşüyor", severity: :major,
+                                     alert: registration_alert, lead: burak, by: burak)
+    registration.transition_to!(:investigating, by: burak)
+    registration.transition_to!(:fixing, by: burak)
+    registration.post_update!(body: "Veritabanı bağlantı havuzu dolu; havuzu büyütüyoruz.", by: burak)
+
+    grades = Incident.declare!(service: service, title: "Not girişi kaydedilmiyor", severity: :major, public_impact: true,
+                               lead: ayse, by: ayse)
+    grades.transition_to!(:investigating, by: ayse)
+    grades.publish_status_update!(public_status: :identified, message: "Not girişindeki hatayı bulduk, düzeltme yolda.", by: ayse)
+    grades.transition_to!(:resolved, by: ayse)
+    grades.follow_ups.create!(title: "Not kaydı için uçtan uca test ekle", owner: mehmet, due_on: Date.current + 7)
+
+    transcript = Incident.declare!(service: service, title: "Transkript PDF'leri gecikmeli", severity: :minor,
+                                   lead: mehmet, by: mehmet)
+    transcript.transition_to!(:investigating, by: mehmet)
+    transcript.transition_to!(:resolved, by: mehmet)
+    transcript.create_postmortem!(body: "Kuyruk işçisi yeniden başlatıldı; izleme eşiği eklendi.").publish!
+    transcript.transition_to!(:closed, by: mehmet)
+  end
+
+  puts "Seed tamam: #{User.count} kullanıcı, #{Schedule.count} takvim, #{Alert.count} alarm, #{Incident.count} olay. " \
        "Demo şifresi README'de. Yönetici: #{manager.email_address}"
 end
