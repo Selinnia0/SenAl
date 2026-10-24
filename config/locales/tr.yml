@@ -16,6 +16,36 @@ tr:
       urgency:
         high: Yüksek
         low: Düşük
+    incident:
+      status:
+        triage: Ön değerlendirme
+        investigating: İnceleniyor
+        fixing: Düzeltiliyor
+        monitoring: İzleniyor
+        resolved: Çözüldü
+        closed: Kapatıldı
+        declined: Reddedildi
+      severity:
+        critical: Kritik
+        major: Büyük
+        minor: Küçük
+    timeline_event:
+      kind:
+        update: Güncelleme
+        status_change: Durum değişti
+        role_change: Rol değişti
+        severity_change: Önem değişti
+        reopened: Yeniden açıldı
+    status_page_update:
+      public_status:
+        investigating: İnceleniyor
+        identified: Sorun bulundu
+        monitoring: İzleniyor
+        resolved: Çözüldü
+    incident_role_assignment:
+      role:
+        lead: Olay lideri
+        communications: İletişim sorumlusu
     alert_event:
       kind:
         triggered: Alarm geldi
@@ -80,6 +110,22 @@ tr:
         starts_at: Başlangıç
         ends_at: Bitiş
         reason: Sebep
+      incident:
+        title: Başlık
+        summary: Özet
+        severity: Önem
+        status: Durum
+        lead_assignment: Olay lideri
+        public_impact: Halka açık etki
+      timeline_event:
+        body: Metin
+      status_page_update:
+        message: Mesaj
+      postmortem:
+        body: Metin
+      follow_up:
+        title: Başlık
+        owner: Sorumlu
       blackout_period:
         name: Ad
         kind: Tür

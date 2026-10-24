@@ -1,0 +1,6 @@
+<% %w[triage_critical investigating_major monitoring_minor resolved_major closed_major declined_minor].each do |name| %>
+<%= name %>_lead:
+  incident: <%= name %>
+  user: alice
+  role: lead
+<% end %>

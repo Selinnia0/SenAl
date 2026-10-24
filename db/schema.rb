@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_24_183734) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_24_184001) do
   create_table "alert_events", force: :cascade do |t|
     t.integer "alert_id", null: false
     t.string "kind", null: false
@@ -76,6 +76,52 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_183734) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "follow_ups", force: :cascade do |t|
+    t.integer "incident_id", null: false
+    t.integer "owner_id", null: false
+    t.string "title", null: false
+    t.date "due_on"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["incident_id"], name: "index_follow_ups_on_incident_id"
+    t.index ["owner_id"], name: "index_follow_ups_on_owner_id"
+  end
+
+  create_table "incident_role_assignments", force: :cascade do |t|
+    t.integer "incident_id", null: false
+    t.integer "user_id", null: false
+    t.integer "role", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["incident_id", "role"], name: "index_incident_role_assignments_on_incident_id_and_role", unique: true
+    t.index ["incident_id"], name: "index_incident_role_assignments_on_incident_id"
+    t.index ["user_id"], name: "index_incident_role_assignments_on_user_id"
+  end
+
+  create_table "incidents", force: :cascade do |t|
+    t.integer "service_id", null: false
+    t.integer "alert_id"
+    t.string "title", null: false
+    t.text "summary"
+    t.integer "severity", default: 1, null: false
+    t.integer "status", default: 0, null: false
+    t.boolean "public_impact", default: false, null: false
+    t.datetime "declared_at", null: false
+    t.datetime "last_update_at", null: false
+    t.datetime "resolved_at"
+    t.datetime "closed_at"
+    t.datetime "update_reminder_sent_at"
+    t.datetime "postmortem_reminder_sent_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["alert_id"], name: "index_incidents_on_alert_id"
+    t.index ["last_update_at"], name: "index_incidents_on_last_update_at"
+    t.index ["resolved_at"], name: "index_incidents_on_resolved_at"
+    t.index ["service_id"], name: "index_incidents_on_service_id"
+    t.index ["status"], name: "index_incidents_on_status"
+  end
+
   create_table "notifications", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "alert_id"
@@ -83,7 +129,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_183734) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.text "message"
+    t.integer "incident_id"
     t.index ["alert_id"], name: "index_notifications_on_alert_id"
+    t.index ["incident_id"], name: "index_notifications_on_incident_id"
     t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
@@ -97,6 +145,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_183734) do
     t.index ["schedule_id", "starts_at", "ends_at"], name: "index_overrides_on_schedule_id_and_starts_at_and_ends_at"
     t.index ["schedule_id"], name: "index_overrides_on_schedule_id"
     t.index ["user_id"], name: "index_overrides_on_user_id"
+  end
+
+  create_table "postmortems", force: :cascade do |t|
+    t.integer "incident_id", null: false
+    t.text "body"
+    t.date "due_on"
+    t.datetime "published_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["incident_id"], name: "index_postmortems_on_incident_id", unique: true
   end
 
   create_table "schedule_memberships", force: :cascade do |t|
@@ -290,6 +348,31 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_183734) do
     t.index ["key"], name: "index_solid_queue_semaphores_on_key", unique: true
   end
 
+  create_table "status_page_updates", force: :cascade do |t|
+    t.integer "incident_id", null: false
+    t.integer "public_status", null: false
+    t.text "message", null: false
+    t.datetime "published_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["incident_id", "published_at"], name: "index_status_page_updates_on_incident_id_and_published_at"
+    t.index ["incident_id"], name: "index_status_page_updates_on_incident_id"
+  end
+
+  create_table "timeline_events", force: :cascade do |t|
+    t.integer "incident_id", null: false
+    t.integer "user_id"
+    t.integer "kind", null: false
+    t.text "body"
+    t.json "details", default: {}, null: false
+    t.datetime "occurred_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["incident_id", "occurred_at"], name: "index_timeline_events_on_incident_id_and_occurred_at"
+    t.index ["incident_id"], name: "index_timeline_events_on_incident_id"
+    t.index ["user_id"], name: "index_timeline_events_on_user_id"
+  end
+
   create_table "unavailabilities", force: :cascade do |t|
     t.integer "user_id", null: false
     t.datetime "starts_at", null: false
@@ -318,10 +401,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_183734) do
   add_foreign_key "alerts", "users", column: "assignee_id"
   add_foreign_key "escalation_levels", "escalation_policies"
   add_foreign_key "escalation_levels", "schedules"
+  add_foreign_key "follow_ups", "incidents"
+  add_foreign_key "follow_ups", "users", column: "owner_id"
+  add_foreign_key "incident_role_assignments", "incidents"
+  add_foreign_key "incident_role_assignments", "users"
+  add_foreign_key "incidents", "alerts"
+  add_foreign_key "incidents", "services"
   add_foreign_key "notifications", "alerts"
+  add_foreign_key "notifications", "incidents"
   add_foreign_key "notifications", "users"
   add_foreign_key "overrides", "schedules"
   add_foreign_key "overrides", "users"
+  add_foreign_key "postmortems", "incidents"
   add_foreign_key "schedule_memberships", "schedules"
   add_foreign_key "schedule_memberships", "users"
   add_foreign_key "services", "escalation_policies"
@@ -334,5 +425,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_183734) do
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "status_page_updates", "incidents"
+  add_foreign_key "timeline_events", "incidents"
+  add_foreign_key "timeline_events", "users"
   add_foreign_key "unavailabilities", "users"
 end

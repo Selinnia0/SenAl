@@ -1,0 +1,53 @@
+# Response katmanı olayları. Çapa: 2026-10-19 10:00 Istanbul = 07:00 UTC.
+triage_critical:
+  service: sis
+  title: Öğrenci girişi tamamen kapalı
+  severity: critical
+  status: triage
+  public_impact: true
+  declared_at: 2026-10-19 06:50:00
+  last_update_at: 2026-10-19 06:50:00
+
+investigating_major:
+  service: sis
+  alert: triggered
+  title: Ders kaydı yavaş
+  severity: major
+  status: investigating
+  declared_at: 2026-10-19 06:30:00
+  last_update_at: 2026-10-19 06:40:00
+
+monitoring_minor:
+  service: sis
+  title: Transkript PDF'leri gecikmeli
+  severity: minor
+  status: monitoring
+  declared_at: 2026-10-19 05:00:00
+  last_update_at: 2026-10-19 06:00:00
+
+resolved_major:
+  service: sis
+  title: Not girişi hata veriyor
+  severity: major
+  status: resolved
+  declared_at: 2026-10-18 06:00:00
+  last_update_at: 2026-10-18 08:00:00
+  resolved_at: 2026-10-18 08:00:00
+
+closed_major:
+  service: sis
+  title: Eski bir olay
+  severity: major
+  status: closed
+  declared_at: 2026-10-10 06:00:00
+  last_update_at: 2026-10-12 06:00:00
+  resolved_at: 2026-10-10 09:00:00
+  closed_at: 2026-10-12 06:00:00
+
+declined_minor:
+  service: sis
+  title: Yanlış alarm
+  severity: minor
+  status: declined
+  declared_at: 2026-10-19 06:00:00
+  last_update_at: 2026-10-19 06:05:00
