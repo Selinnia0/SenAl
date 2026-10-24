@@ -1,5 +1,5 @@
 diff --git a/AGENT.md b/AGENT.md
-index 8507c0b..1be04b7 100644
+index 8507c0b..baf613f 100644
 --- a/AGENT.md
 +++ b/AGENT.md
 @@ -40,27 +40,193 @@ Ne yapılacağı: [docs/specs.md](docs/specs.md). Hangi sırayla: [docs/plan.md]
@@ -143,7 +143,7 @@ index 8507c0b..1be04b7 100644
 +
 +- **Orijinal marka adı arayüzde yok** (incident.io, Alarmalade, PagerDuty; logo, alev ikonu). Yalnızca README'de "ilham kaynağı". Koruma testi: `test/controllers/design_system_test.rb` (app/views, app/assets, app/helpers, app/javascript, public).
 +- **Ticari fontlar yok**; açık lisanslı: Newsreader, Inter, Geist Mono (Google Fonts).
-+- **Renk değeri tek yerde**: `tokens.css`. Başka CSS'te hex yazılmaz (istisna: koyu zemindeki açık metin tonları, yorumda oranıyla).
++- **Renk değeri tek yerde**: `tokens.css`. Başka CSS dosyasında hex/rgba yazılmaz. Kontrol: `grep -nE "#[0-9A-Fa-f]{3,6}\b|rgba?\(" app/assets/stylesheets/{base,components,layout}.css` boş dönmeli.
 +- **Metin rengi için yalnızca `-ink` token'ları** (WCAG AA ≥ 4.5:1). Ana severity renkleri nokta/kenarlık içindir. Severity hiçbir zaman yalnızca renkle anlatılmaz (rozette metin var).
 +- **Turbo yayını callback'le yapılmaz** (`broadcasts_to` yasak listesine takılır): başarılı işlemden sonra controller'da `IncidentScoped#broadcast_incident_change` (`broadcast_refresh_to`).
 +- Olay geçişleri yalnızca `Incident#transition_to!`; enum bang metotları (`closed!` …) domain kodunda yok. Yasak kalıp taramasına yeni durumlar eklendi:
