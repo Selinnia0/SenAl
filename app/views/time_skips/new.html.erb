@@ -21,7 +21,7 @@
 
 <div class="inline-actions">
   <% TimeSkipsController::PRESETS.each do |minutes| %>
-    <%= button_to (minutes < 60 ? "+#{minutes} dk" : "+#{minutes / 60} saat"), time_skip_path,
+    <%= button_to (if minutes < 60 then "+#{minutes} dk" elsif minutes < 24 * 60 then "+#{minutes / 60} saat" else "+#{minutes / (24 * 60)} gün" end), time_skip_path,
                   params: { time_skip: { minutes: minutes } } %>
   <% end %>
 </div>

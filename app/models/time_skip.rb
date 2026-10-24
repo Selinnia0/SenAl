@@ -1,15 +1,22 @@
-# Demo/test aracı: eskalasyonu (5 dk) ve bayatlamayı (4 saat) beklemeden görmek için "N dakika ileri sar".
+# Demo/test aracı: zaman kurallarını beklemeden görmek için "N dakika ileri sar".
 #
-# Gerçek saat değiştirilmez (global Time yaması yok). Bunun yerine açık olayların bütün zamanları
-# N dakika geriye kaydırılır; her eskalasyon/bayatlama anında gerçek Alert.escalate_due! ve
-# Alert.retrigger_stale! çalışır. Sonuç, N dakika geçmiş gibidir ve zaman çizelgesi tutarlı kalır.
-# Nöbet rotasyonu gerçek saate göre hesaplanmaya devam eder.
+# Gerçek saat değiştirilmez (global Time yaması yok). Bunun yerine açık alarmların ve olayların bütün
+# zamanları N dakika geriye kaydırılır; her kural anında gerçek sınıf metotları çalışır:
+#   Alert.escalate_due! (Z1), Alert.retrigger_stale! (Z7),
+#   Incident.remind_overdue_updates! (Z3), Incident.remind_overdue_postmortems! (Z4).
+# Z5 (durum sayfası geçmişi) bir scope olduğu için kaydırma tek başına yeterli.
+# Sonuç, N dakika geçmiş gibidir ve zaman çizelgeleri tutarlı kalır. Nöbet rotasyonu, izinler ve
+# akademik takvim gerçek saate göre hesaplanmaya devam eder.
 class TimeSkip
   include ActiveModel::Model
   include ActiveModel::Attributes
 
-  MAX_MINUTES = 24 * 60
+  MAX_MINUTES = 7 * 24 * 60 # Z4 (5 gün) ve Z5 (7 gün) de görülebilsin
   MAX_ITERATIONS = 10_000
+
+  ALERT_TIMES = %i[triggered_at acknowledged_at escalate_at].freeze
+  INCIDENT_TIMES = %i[declared_at last_update_at resolved_at closed_at
+                      update_reminder_sent_at postmortem_reminder_sent_at].freeze
 
   attribute :minutes, :integer
 
@@ -20,46 +27,74 @@ class TimeSkip
     Rails.configuration.x.time_skip_enabled
   end
 
-  # Oluşan zaman çizelgesi kayıtlarını türüne göre döner: { "escalated" => 2, "notified" => 2, ... }
+  # Oluşan kayıtları türüne göre döner: { "escalated" => 2, "notified" => 2, "incident_reminder" => 1 }
   def run!
     validate!
 
     Alert.transaction do
       last_event_id = AlertEvent.maximum(:id).to_i
+      last_notification_id = Notification.maximum(:id).to_i
       remaining = minutes.minutes.to_i
 
       MAX_ITERATIONS.times do
         step = [ seconds_until_next_due, remaining ].compact.min
-        shift_open_alerts!(step) if step.positive?
+        if step.positive?
+          shift_open_alerts!(step)
+          shift_incidents!(step)
+        end
         remaining -= step
 
         Alert.escalate_due!
         Alert.retrigger_stale!
+        Incident.remind_overdue_updates!
+        Incident.remind_overdue_postmortems!
         break if remaining <= 0
       end
 
-      AlertEvent.where(id: (last_event_id + 1)..).group(:kind).count
+      summary = AlertEvent.where(id: (last_event_id + 1)..).group(:kind).count
+      reminders = Notification.where(id: (last_notification_id + 1)..).where.not(incident_id: nil).count
+      reminders.positive? ? summary.merge("incident_reminder" => reminders) : summary
     end
   end
 
   private
-    # Bir sonraki eskalasyon veya bayatlama anına kalan saniye (yoksa nil).
+    # Bir sonraki kural anına kalan saniye (yoksa nil).
     def seconds_until_next_due
-      due_times = Alert.triggered.where.not(escalate_at: nil).pluck(:escalate_at)
-      due_times += Alert.acknowledged.includes(:service).map do |alert|
-        alert.acknowledged_at + alert.service.ack_reset_minutes.minutes
-      end
-
-      next_due = due_times.min
+      next_due = (alert_due_times + incident_due_times).min
       next_due && [ (next_due - Time.current).ceil, 0 ].max
+    end
+
+    def alert_due_times
+      Alert.triggered.where.not(escalate_at: nil).pluck(:escalate_at) +
+        Alert.acknowledged.includes(:service).map { |alert| alert.acknowledged_at + alert.service.ack_reset_minutes.minutes }
+    end
+
+    def incident_due_times
+      update_due = Incident.active.where(update_reminder_sent_at: nil).filter_map(&:update_due_at)
+      postmortem_due = Incident.resolved.where(postmortem_reminder_sent_at: nil).includes(:postmortem)
+                               .reject { |incident| incident.postmortem&.published? }.filter_map(&:postmortem_due_at)
+      update_due + postmortem_due
     end
 
     # update_columns bilinçli: bu bir zaman kaydırması, domain geçişi değil; doğrulama/callback yok.
     def shift_open_alerts!(seconds)
       Alert.not_resolved.includes(:alert_events, :notifications).find_each do |alert|
-        alert.update_columns(shifted(alert, %i[triggered_at acknowledged_at escalate_at], seconds))
+        alert.update_columns(shifted(alert, ALERT_TIMES, seconds))
         alert.alert_events.each { |event| event.update_columns(occurred_at: event.occurred_at - seconds) }
         alert.notifications.each { |notification| notification.update_columns(created_at: notification.created_at - seconds) }
+      end
+    end
+
+    # Bütün olaylar kayar: çözülmüş olaylar da kaymalı ki Z4 ve Z5 (geçmişten düşme) görülebilsin.
+    def shift_incidents!(seconds)
+      Incident.includes(:timeline_events, :status_page_updates, :notifications, :postmortem, :follow_ups)
+              .find_each do |incident|
+        incident.update_columns(shifted(incident, INCIDENT_TIMES, seconds))
+        incident.timeline_events.each { |event| event.update_columns(occurred_at: event.occurred_at - seconds) }
+        incident.status_page_updates.each { |update| update.update_columns(published_at: update.published_at - seconds) }
+        incident.notifications.each { |notification| notification.update_columns(created_at: notification.created_at - seconds) }
+        incident.postmortem&.then { |postmortem| postmortem.update_columns(shifted(postmortem, %i[published_at], seconds)) }
+        incident.follow_ups.each { |follow_up| follow_up.update_columns(shifted(follow_up, %i[completed_at], seconds)) }
       end
     end
 

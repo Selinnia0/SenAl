@@ -63,12 +63,57 @@ class TimeSkipTest < ActiveSupport::TestCase
     assert_operator summary["escalated"], :>=, 1
   end
 
-  test "süre 1 ile 1440 dakika arasında olmalı" do
-    [ 0, -5, 1441, nil ].each do |minutes|
+  test "süre 1 dakika ile 7 gün (10080 dk) arasında olmalı" do
+    [ 0, -5, 10_081, nil ].each do |minutes|
       skip_request = TimeSkip.new(minutes: minutes)
       assert_not skip_request.valid?, "minutes: #{minutes.inspect}"
       assert_raises(ActiveModel::ValidationError) { skip_request.run! }
     end
-    assert TimeSkip.new(minutes: 1440).valid?
+    assert TimeSkip.new(minutes: 10_080).valid?
+  end
+
+  # --- v2 response katmanı: olaylar da ileri sarılır ---
+
+  test "olay zamanları da kayar: +30 dk critical olayda güncelleme hatırlatıcısı düşer, zaman çizelgesi tutarlı" do
+    incident = Incident.declare!(service: services(:sis), title: "Sıçrama olayı", severity: :critical,
+                                 lead: @alice, by: @bob)
+
+    TimeSkip.new(minutes: 30).run!
+    incident.reload
+
+    assert_equal 30.minutes.ago, incident.declared_at
+    assert_equal 30.minutes.ago, incident.timeline_events.first.occurred_at
+    assert_includes Incident.update_overdue, incident
+    assert_equal [ @alice ], incident.notifications.map(&:user)
+  end
+
+  test "+5 gün: çözülmüş critical olayda postmortem hatırlatıcısı düşer" do
+    incident = Incident.declare!(service: services(:sis), title: "Postmortem olayı", severity: :critical,
+                                 lead: @alice, by: @bob)
+    incident.transition_to!(:investigating, by: @alice)
+    incident.transition_to!(:resolved, by: @alice)
+
+    TimeSkip.new(minutes: 5 * 24 * 60).run!
+    incident.reload
+
+    assert_equal 5.days.ago, incident.resolved_at
+    assert_includes Incident.postmortem_overdue, incident
+    assert(incident.notifications.any? { |notification| notification.message.match?(/postmortem/i) })
+  end
+
+  test "+7 gün 1 dk: halka açık çözülmüş olay durum sayfası geçmişinden düşer" do
+    incident = Incident.declare!(service: services(:sis), title: "Halka açık", severity: :minor,
+                                 public_impact: true, lead: @alice, by: @bob)
+    incident.transition_to!(:investigating, by: @alice)
+    incident.publish_status_update!(public_status: :investigating, message: "İnceliyoruz.", by: @alice)
+    incident.transition_to!(:resolved, by: @alice)
+    assert_includes Incident.recent_for_status_page, incident
+
+    TimeSkip.new(minutes: TimeSkip::MAX_MINUTES).run! # 7 gün: sınır dahil, hâlâ görünür
+    assert_includes Incident.recent_for_status_page, incident
+
+    TimeSkip.new(minutes: 1).run!
+    assert_not_includes Incident.recent_for_status_page, incident
+    assert_equal (7.days + 1.minute).ago, incident.status_page_updates.reload.last.published_at
   end
 end

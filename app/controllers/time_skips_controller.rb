@@ -6,7 +6,7 @@ class TimeSkipsController < ApplicationController
   # Özellik kapalıyken sayfanın varlığı da belli olmasın: kimlik/yetki kontrolünden önce 404.
   prepend_before_action :require_enabled
 
-  PRESETS = [ 1, 5, 10, 30, 60, 240 ].freeze
+  PRESETS = [ 1, 5, 10, 30, 60, 240, 24 * 60, 5 * 24 * 60 ].freeze
 
   def new
     @time_skip = TimeSkip.new(minutes: 5)
@@ -37,6 +37,6 @@ class TimeSkipsController < ApplicationController
     def describe(summary)
       return "Zamanı gelen eskalasyon veya bayatlama olmadı." if summary.empty?
 
-      summary.map { |kind, count| "#{t("enums.alert_event.kind.#{kind}", default: kind)}: #{count}" }.join(", ") + "."
+      summary.map { |kind, count| "#{t("time_skip.summary.#{kind}", default: t("enums.alert_event.kind.#{kind}", default: kind))}: #{count}" }.join(", ") + "."
     end
 end

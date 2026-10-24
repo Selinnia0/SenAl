@@ -18,7 +18,7 @@ class OnCall
     members = @schedule.schedule_memberships.includes(:user).map(&:user)
     return nil if members.empty?
 
-    # 2. Rotasyon sırası; 3. o anda müsait olan ilk üye (Z4).
+    # 2. Rotasyon sırası; 3. o anda müsait olan ilk üye (Z6).
     base_index = slot_at(time) % members.size
     members.rotate(base_index).find { |member| member.available_at?(time) }
   end

@@ -1,7 +1,7 @@
 class Notification < ApplicationRecord
   belongs_to :user
   belongs_to :alert, optional: true    # on-call bildirimi
-  belongs_to :incident, optional: true # response hatırlatıcısı (Z3/Z4)
+  belongs_to :incident, optional: true # response hatırlatıcısı (v2 Z3 güncelleme, Z4 postmortem)
 
   scope :unread, -> { where(read_at: nil) }
 

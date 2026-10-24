@@ -23,6 +23,13 @@ class Incident < ApplicationRecord
   ACTIVE_STATUSES = %w[triage investigating fixing monitoring].freeze
   FINAL_STATUSES = %w[closed declined].freeze
 
+  # Z3: aktif olayda bu süre güncelleme yoksa "güncelleme gecikti" (minor için kural yok).
+  UPDATE_INTERVALS = { "critical" => 30.minutes, "major" => 60.minutes }.freeze
+  # Z4: critical/major olay çözüldükten bu süre sonra postmortem yayınlanmamışsa gecikmiş.
+  POSTMORTEM_DEADLINE = 5.days
+  # Z5: halka açık çözülmüş olay durum sayfası geçmişinde bu süre görünür.
+  STATUS_PAGE_HISTORY = 7.days
+
   belongs_to :service
   belongs_to :alert, optional: true
   has_many :role_assignments, class_name: "IncidentRoleAssignment", dependent: :destroy
@@ -38,6 +45,26 @@ class Incident < ApplicationRecord
        validate: true
 
   scope :active, -> { where(status: ACTIVE_STATUSES) }
+  scope :public_facing, -> { where(public_impact: true) }
+
+  # Z3. Sınır dahil (<=): tam 30. dakikada gecikmiş sayılır (Alert.escalation_due ile aynı).
+  scope :update_overdue, -> {
+    overdue = UPDATE_INTERVALS.map do |severity, interval|
+      where(severity: severity, last_update_at: ..(Time.current - interval))
+    end
+    active.and(overdue.reduce(:or))
+  }
+
+  # Z4. Yeniden açılan olay "resolved" olmadığı için kapsam dışı kalır.
+  scope :postmortem_overdue, -> {
+    resolved.where(severity: %i[critical major], resolved_at: ..(Time.current - POSTMORTEM_DEADLINE))
+            .where.not(id: Postmortem.published.select(:incident_id))
+  }
+
+  # Z5. Kapanmış olay da çözülme anına göre 7 gün görünür.
+  scope :recent_for_status_page, -> {
+    public_facing.where(status: %w[resolved closed], resolved_at: (Time.current - STATUS_PAGE_HISTORY)..)
+  }
 
   validates :title, :declared_at, :last_update_at, presence: true
   validates :lead_assignment, presence: true
@@ -59,8 +86,63 @@ class Incident < ApplicationRecord
     end
   end
 
+  # Z6: önerilen lead, servisin seviye 0 takviminin o anki nöbetçisidir; izinli ya da akademik kapanma
+  # dönemindeki kişi önerilmez. OnCall rotasyonda müsait olmayanı zaten atlar; override ise müsaitliğe
+  # bakmadığı için burada ayrıca kontrol edilir. Yan etkisiz; lead ilan sırasında yine elle verilir.
+  def self.suggested_lead(service, at: Time.current)
+    level = service.escalation_policy.escalation_levels.first
+    candidate = level && OnCall.for(level.schedule, at: at)
+    candidate if candidate&.available_at?(at)
+  end
+
+  # EscalationSweepJob her dakika çağırır (Z3). Gecikme başına tek hatırlatıcı.
+  def self.remind_overdue_updates!
+    update_overdue.where(update_reminder_sent_at: nil).find_each(&:send_update_reminder!)
+  end
+
+  # EscalationSweepJob her dakika çağırır (Z4). Olay başına tek hatırlatıcı.
+  def self.remind_overdue_postmortems!
+    postmortem_overdue.where(postmortem_reminder_sent_at: nil).find_each(&:send_postmortem_reminder!)
+  end
+
   def lead
     lead_assignment&.user
+  end
+
+  def update_interval
+    UPDATE_INTERVALS[severity]
+  end
+
+  def update_due_at
+    last_update_at + update_interval if active? && update_interval
+  end
+
+  def update_overdue?
+    update_due_at.present? && update_due_at <= Time.current
+  end
+
+  def postmortem_due_at
+    resolved_at + POSTMORTEM_DEADLINE if postmortem_required? && resolved_at
+  end
+
+  def postmortem_overdue?
+    resolved? && postmortem_due_at.present? && postmortem_due_at <= Time.current && !postmortem&.published?
+  end
+
+  def send_update_reminder!
+    message = "#{severity_label} olay ##{id} \"#{title}\": #{update_interval.in_minutes.to_i} dakikadır güncelleme yazılmadı."
+    transaction do
+      role_assignments.includes(:user).map(&:user).uniq.each { |user| notifications.create!(user: user, message: message) }
+      update!(update_reminder_sent_at: Time.current)
+    end
+  end
+
+  def send_postmortem_reminder!
+    message = "#{severity_label} olay ##{id} \"#{title}\": çözüleli #{POSTMORTEM_DEADLINE.in_days.to_i} gün oldu, postmortem yayınlanmadı."
+    transaction do
+      notifications.create!(user: lead, message: message)
+      update!(postmortem_reminder_sent_at: Time.current)
+    end
   end
 
   def communications_lead
@@ -100,7 +182,10 @@ class Incident < ApplicationRecord
       self.status = new_status
       self.last_update_at = Time.current
       self.update_reminder_sent_at = nil
-      self.resolved_at = Time.current if new_status == "resolved"
+      if new_status == "resolved"
+        self.resolved_at = Time.current
+        self.postmortem_reminder_sent_at = nil
+      end
       self.resolved_at = nil if from == "resolved" && new_status == "investigating"
       self.closed_at = Time.current if new_status == "closed"
       save!
@@ -193,6 +278,10 @@ class Incident < ApplicationRecord
 
     def status_label(value)
       I18n.t("enums.incident.status.#{value}", default: value.to_s)
+    end
+
+    def severity_label
+      I18n.t("enums.incident.severity.#{severity}", default: severity.to_s)
     end
 
     def status_transition_allowed

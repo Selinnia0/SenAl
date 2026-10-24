@@ -1,6 +1,6 @@
 require "test_helper"
 
-# Z4: Müsaitlik farkındalıklı rotasyon (adaptasyon).
+# Z6 (v1: Z4): Müsaitlik farkındalıklı rotasyon (adaptasyon).
 # Ayşe (alice) asistan, Burak (bob) ve Yönetici (manager) personel.
 class AvailabilityTest < ActiveSupport::TestCase
   setup do

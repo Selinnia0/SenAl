@@ -19,7 +19,7 @@ class Alert < ApplicationRecord
   # Z1: zamanı gelmiş eskalasyonlar. low olaylarda escalate_at hep nil olduğu için seçilmezler.
   scope :escalation_due, -> { triggered.where(escalate_at: ..Time.current) }
 
-  # Z3: servisin ack_reset_minutes süresini aşmış acknowledged olaylar. Süre servis bazlı olduğu
+  # Z7: servisin ack_reset_minutes süresini aşmış acknowledged olaylar. Süre servis bazlı olduğu
   # için her farklı süre değeri ayrı bir koşul olur; SQL tarih aritmetiği kullanılmaz (SQLite/PostgreSQL aynı).
   scope :stale_acknowledged, -> {
     conditions = Service.distinct.pluck(:ack_reset_minutes).map do |minutes|
@@ -109,7 +109,7 @@ class Alert < ApplicationRecord
     end
   end
 
-  # Yalnızca sistem çağırır (Z3): seviye 0'dan yeniden başlar ve seviye 0 nöbetçisini bildirir.
+  # Yalnızca sistem çağırır (Z7): seviye 0'dan yeniden başlar ve seviye 0 nöbetçisini bildirir.
   def retrigger!
     transaction do
       transition_to!(:triggered, kind: "retriggered") do

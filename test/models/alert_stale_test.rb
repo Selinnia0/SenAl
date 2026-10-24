@@ -1,6 +1,6 @@
 require "test_helper"
 
-# Z3: Bayatlamış "gördüm" → yeniden tetikleme. Servisin ack_reset_minutes'i 240 (4 saat).
+# Z7 (v1: Z3): Bayatlamış "gördüm" → yeniden tetikleme. Servisin ack_reset_minutes'i 240 (4 saat).
 class AlertStaleTest < ActiveSupport::TestCase
   setup do
     travel_to Time.zone.parse("2026-10-19 10:00")

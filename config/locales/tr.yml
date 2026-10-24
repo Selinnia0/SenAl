@@ -7,6 +7,10 @@ tr:
     formats:
       compact: "%d.%m.%Y %H:%M"
 
+  time_skip:
+    summary:
+      incident_reminder: Olay hatırlatıcısı
+
   enums:
     alert:
       status:

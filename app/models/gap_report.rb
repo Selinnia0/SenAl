@@ -1,4 +1,4 @@
-# Z5: Önümüzdeki ufukta tüm takvimleri tarar; boşluk varsa her yöneticiye tek bildirim gönderir.
+# Z8: Önümüzdeki ufukta tüm takvimleri tarar; boşluk varsa her yöneticiye tek bildirim gönderir.
 class GapReport
   TIME_FORMAT = "%d.%m.%Y %H:%M".freeze
 

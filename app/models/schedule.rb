@@ -25,7 +25,7 @@ class Schedule < ApplicationRecord
     samples
   end
 
-  # Z5: [from, to) aralığında nöbetçinin nil olduğu dilimler. 1 saatlik örnekleme;
+  # Z8: [from, to) aralığında nöbetçinin nil olduğu dilimler. 1 saatlik örnekleme;
   # ardışık boş saatler tek aralıkta birleşir. Dönüş: [Range<Time>] (bitiş hariç).
   def gaps(from:, to:)
     gaps = []

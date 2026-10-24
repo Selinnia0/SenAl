@@ -1,6 +1,6 @@
 require "test_helper"
 
-# Z5: Boşluk tespiti ve önceden uyarı (adaptasyon).
+# Z8 (v1: Z5): Boşluk tespiti ve önceden uyarı (adaptasyon).
 # Fixture'lar: BT Altyapı (primary) = Ayşe, Burak; Laboratuvar (secondary) = Burak, Yönetici.
 class GapReportTest < ActiveSupport::TestCase
   setup do

@@ -15,7 +15,7 @@ class User < ApplicationRecord
   validates :name, presence: true
   validates :email_address, presence: true, uniqueness: true
 
-  # Z4: kişisel izin veya kişiye uygulanan akademik kapanma dönemi varsa müsait değil.
+  # Z6: kişisel izin veya kişiye uygulanan akademik kapanma dönemi varsa müsait değil.
   # Kişi bir kez izin girer, tüm takvimlerden otomatik düşer (OnCall bunu kullanır).
   def available_at?(time)
     return false if unavailabilities.covering(time).exists?
