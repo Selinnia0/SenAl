@@ -1,0 +1,100 @@
+/* Çıplak HTML öğeleri. Sınıf kullanmayan eski sayfalar da token'larla okunur görünsün. */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--sa-bg);
+    color: var(--sa-ink);
+    font-family: var(--sa-font-sans);
+    font-size: var(--sa-text-base);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow-wrap: anywhere;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--sa-font-display);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin: 0 0 var(--sa-space-4);
+    color: var(--sa-ink);
+  }
+  h1 { font-size: var(--sa-text-2xl); }
+  h2 { font-size: var(--sa-text-xl); margin-top: var(--sa-space-8); }
+  h3 { font-size: var(--sa-text-lg); margin-top: var(--sa-space-6); }
+
+  p, ul, ol, dl { margin: 0 0 var(--sa-space-4); }
+  small { font-size: var(--sa-text-sm); color: var(--sa-ink-muted); }
+
+  a { color: var(--sa-accent-ink); text-underline-offset: 3px; }
+  a:hover { color: var(--sa-accent-strong-hover); }
+
+  code, kbd, samp, pre { font-family: var(--sa-font-mono); font-size: 0.9em; }
+  code { background: var(--sa-surface-muted); padding: 1px 6px; border-radius: var(--sa-radius-sm); }
+  pre {
+    background: var(--sa-ink);
+    color: var(--sa-ink-inverse);
+    padding: var(--sa-space-4);
+    border-radius: var(--sa-radius-md);
+    overflow-x: auto;
+    white-space: pre;
+    overflow-wrap: normal;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  dt { font-size: var(--sa-text-sm); color: var(--sa-ink-muted); margin-top: var(--sa-space-3); }
+  dd { margin: 0; }
+
+  hr { border: 0; border-top: 1px solid var(--sa-border); margin: var(--sa-space-6) 0; }
+
+  /* Tablolar: sınıfsız da okunur; .table bileşeni aynı görünümü verir */
+  table { width: 100%; border-collapse: collapse; font-size: var(--sa-text-sm); background: var(--sa-surface); }
+  th, td { text-align: left; padding: var(--sa-space-3) var(--sa-space-4); border-bottom: 1px solid var(--sa-border); vertical-align: top; }
+  thead th { background: var(--sa-surface-muted); color: var(--sa-ink-muted); font-weight: 500; }
+  tbody tr:hover { background: var(--sa-bg); }
+
+  /* Formlar */
+  label { display: block; font-size: var(--sa-text-sm); font-weight: 500; margin: var(--sa-space-4) 0 var(--sa-space-1); }
+  input:not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=hidden]), select, textarea {
+    display: block;
+    width: 100%;
+    min-height: var(--sa-control-height);
+    padding: var(--sa-space-2) var(--sa-space-3);
+    font: inherit;
+    font-size: var(--sa-text-sm);
+    color: var(--sa-ink);
+    background: var(--sa-surface);
+    border: 1px solid var(--sa-border);
+    border-radius: var(--sa-radius-md);
+  }
+  textarea { min-height: 96px; resize: vertical; }
+  input[type=checkbox], input[type=radio] { accent-color: var(--sa-accent-strong); width: 16px; height: 16px; }
+
+  /* Sınıfsız buton ve submit: ikincil buton görünümü (bileşen sınıfı varsa o kazanır) */
+  button, input[type=submit] {
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--sa-space-2);
+    min-height: var(--sa-control-height);
+    padding: 0 var(--sa-space-4);
+    font: inherit; font-size: var(--sa-text-sm); font-weight: 500;
+    color: var(--sa-ink);
+    background: var(--sa-surface);
+    border: 1px solid var(--sa-border);
+    border-radius: var(--sa-radius-md);
+    cursor: pointer;
+    margin-top: var(--sa-space-4);
+  }
+  button:hover, input[type=submit]:hover { background: var(--sa-surface-muted); }
+  button:disabled, input[type=submit]:disabled { cursor: not-allowed; opacity: .55; }
+  form { margin: 0; }
+
+  /* Görünür klavye odağı */
+  :focus-visible { outline: var(--sa-focus-ring); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+}

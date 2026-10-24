@@ -1,0 +1,17 @@
+<%# state: :operational / :partial / :major; days: son 7 gün için aynı değerlerden dizi (eskiden yeniye) %>
+<%# locals: (name:, state:, days: []) -%>
+<% labels = { operational: "Çalışıyor", partial: "Kısmi kesinti", major: "Büyük kesinti" } %>
+<div class="status-indicator">
+  <span class="status-indicator__name"><%= name %></span>
+  <span class="status-indicator__state status-indicator__state--<%= state %>">
+    <span class="badge__dot" aria-hidden="true"></span><%= labels.fetch(state.to_sym) %>
+  </span>
+  <% if days.any? %>
+    <div class="status-indicator__bars" role="img" aria-label="Son <%= days.size %> gün: <%= days.map { |day| labels.fetch(day.to_sym) }.join(", ") %>">
+      <% days.each do |day| %>
+        <span class="status-indicator__bar<%= " status-indicator__bar--#{day}" unless day.to_sym == :operational %>" title="<%= labels.fetch(day.to_sym) %>"></span>
+      <% end %>
+    </div>
+    <div class="status-indicator__legend" aria-hidden="true"><span><%= days.size %> gün önce</span><span>Bugün</span></div>
+  <% end %>
+</div>

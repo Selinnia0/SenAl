@@ -1,16 +1,11 @@
-/* Pico.css (sınıfsız) üzerine yalnızca küçük eklemeler. */
-.flash-alert { color: #b00020; }
-.flash-notice { color: #1b7a3a; }
-nav form { margin: 0; }
-nav button { padding: .25rem .75rem; margin: 0; }
-nav ul { flex-wrap: wrap; }
-
-.status { font-weight: 600; }
-.status-triggered { color: #b00020; }
-.status-acknowledged { color: #b26a00; }
-.status-resolved { color: #1b7a3a; }
-
-tr.gap td, tr.gap th { background: #fde2e2; color: #8a0010; }
-.inline-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
-.inline-actions form { margin: 0; }
-td form, td button { margin: 0; }
+/*
+ * Propshaft (stylesheet_link_tag :app) bu klasördeki dosyaları ada göre sıralayıp ekler. Öncelik dosya
+ * sırasına değil, aşağıdaki katman sırasına bağlıdır; bu dosya alfabede ilk olduğu için sıra burada ilan edilir.
+ *
+ *   tokens.css      değişkenler (:root)
+ *   base.css        @layer base        çıplak HTML öğeleri (eski sınıfsız sayfalar da düzgün görünür)
+ *   components.css  @layer components  .btn, .badge, .card, .eyebrow, .table, .timeline, ...
+ *   layout.css      @layer layout      uygulama kabuğu (sidebar + üst bar), auth ve sayfa ızgaraları
+ *   (utilities)     @layer utilities   küçük yardımcı sınıflar (components.css sonunda)
+ */
+@layer base, components, layout, utilities;

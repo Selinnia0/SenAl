@@ -1,0 +1,10 @@
+<%# Kullanım: render layout: "components/page_header", locals: { eyebrow:, title:, lead: } do (eylemler) end %>
+<%# locals: (title:, eyebrow: nil, lead: nil) -%>
+<header class="page-header">
+  <div>
+    <% if eyebrow %><%= render "components/eyebrow", text: eyebrow %><% end %>
+    <h1><%= title %></h1>
+    <% if lead %><p class="page-header__lead"><%= lead %></p><% end %>
+  </div>
+  <% if (actions = yield).present? %><div class="page-header__actions"><%= actions %></div><% end %>
+</header>

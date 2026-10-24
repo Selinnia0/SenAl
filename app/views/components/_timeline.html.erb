@@ -1,0 +1,16 @@
+<%# items: [{ time:, author:, kind_label:, tone: (:accent/:ok/:critical/:info/nil), body:, badge: (html) }] %>
+<%# locals: (items:) -%>
+<ol class="timeline">
+  <% items.each do |item| %>
+    <li class="timeline__item<%= " timeline__item--#{item[:tone]}" if item[:tone] %>">
+      <span class="timeline__dot" aria-hidden="true"></span>
+      <div class="timeline__meta">
+        <span class="timeline__time"><%= mono_time(item[:time]) %></span>
+        <% if item[:author] %><span class="timeline__author"><%= item[:author] %></span><% end %>
+        <span><%= item[:kind_label] %></span>
+        <%= item[:badge] %>
+      </div>
+      <% if item[:body].present? %><p class="timeline__body"><%= item[:body] %></p><% end %>
+    </li>
+  <% end %>
+</ol>

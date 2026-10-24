@@ -1,0 +1,6 @@
+<%# Kullanım: render layout: "components/card", locals: { title: "Roller" } do ... end %>
+<%# locals: (title: nil, muted: false) -%>
+<section class="card<%= " card--muted" if muted %>">
+  <% if title %><h2 class="card__title"><%= title %></h2><% end %>
+  <%= yield %>
+</section>

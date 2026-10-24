@@ -36,6 +36,9 @@ Rails.application.routes.draw do
   resources :blackout_periods, except: :show
   resource :time_skip, only: %i[ new create ] # demo aracı, bkz. TimeSkip
 
+  # Tasarım sistemi vitrini: yalnızca geliştirme ve test (production'da route yok).
+  get "design", to: "design#show" if Rails.env.local?
+
   namespace :api do
     namespace :v1 do
       resources :events, only: :create

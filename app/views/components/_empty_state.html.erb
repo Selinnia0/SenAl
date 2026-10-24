@@ -1,0 +1,5 @@
+<%# locals: (message:, action_label: nil, action_path: nil, action_variant: :primary) -%>
+<div class="empty-state">
+  <p class="empty-state__message"><%= message %></p>
+  <% if action_label && action_path %><%= link_to action_label, action_path, class: btn_class(action_variant) %><% end %>
+</div>

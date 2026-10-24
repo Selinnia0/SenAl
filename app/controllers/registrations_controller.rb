@@ -1,4 +1,5 @@
 class RegistrationsController < ApplicationController
+  layout "auth"
   allow_unauthenticated_access
   rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_registration_path, alert: "Çok fazla deneme. Biraz sonra tekrar deneyin." }
 

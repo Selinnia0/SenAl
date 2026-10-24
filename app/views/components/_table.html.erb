@@ -1,0 +1,8 @@
+<%# Kullanım: render layout: "components/table", locals: { headers: ["Başlık", ...] } do (<tr>…</tr>) end %>
+<%# locals: (headers:, id: nil) -%>
+<div class="table-wrap">
+  <table class="table" <%= tag.attributes(id: id) %>>
+    <thead><tr><% headers.each do |header| %><th scope="col"><%= header %></th><% end %></tr></thead>
+    <tbody><%= yield %></tbody>
+  </table>
+</div>

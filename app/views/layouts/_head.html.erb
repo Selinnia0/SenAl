@@ -1,0 +1,17 @@
+<title><%= [ content_for(:title), "SenAl" ].compact.join(" · ") %></title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="application-name" content="SenAl">
+<meta name="theme-color" content="#F8F5F0">
+<%= csrf_meta_tags %>
+<%= csp_meta_tag %>
+
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+
+<%# Açık lisanslı fontlar (Google Fonts): Newsreader (serif başlık), Inter (gövde), Geist Mono (etiket) %>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap">
+
+<%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+<%= javascript_importmap_tags %>
+<%= yield :head %>

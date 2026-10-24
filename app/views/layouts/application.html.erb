@@ -1,58 +1,80 @@
 <!DOCTYPE html>
 <html lang="tr">
   <head>
-    <title><%= [ content_for(:title), "SenAl" ].compact.join(" · ") %></title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="application-name" content="SenAl">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-
-    <%= yield :head %>
-
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-
-    <%# Sınıfsız CSS: build adımı yok, CDN'den gelir %>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.1.1/css/pico.classless.min.css">
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
+    <%= render "layouts/head" %>
   </head>
 
   <body>
-    <header>
-      <nav>
-        <ul>
-          <li><strong><%= link_to "SenAl", root_path %></strong></li>
-        </ul>
-        <% if authenticated? %>
-          <ul>
-            <li><%= link_to "Pano", root_path %></li>
-            <li><%= link_to "Alarmlar", alerts_path %></li>
-            <li><%= link_to "Takvimler", schedules_path %></li>
-            <li><%= link_to "Müsaitliğim", unavailabilities_path %></li>
-            <li><%= link_to "Bildirimlerim (#{Current.user.notifications.unread.count})", notifications_path %></li>
+    <%= render "components/toasts" %>
+
+    <div class="shell">
+      <aside class="sidebar" data-controller="menu" data-open="false">
+        <div class="sidebar__head">
+          <%= render "components/logo", path: root_path %>
+          <button type="button" class="btn btn--ghost btn--sm sidebar__toggle" data-menu-target="button"
+                  data-action="menu#toggle" aria-expanded="false" aria-controls="sidebar-nav">Menü</button>
+        </div>
+
+        <nav class="sidebar__nav" id="sidebar-nav" aria-label="Ana menü">
+          <div class="sidebar__group">
+            <%= sidebar_link "Pano", root_path %>
+            <%= sidebar_link "Bildirimlerim", notifications_path, count: Current.user.notifications.unread.count %>
+          </div>
+
+          <div class="sidebar__group">
+            <span class="eyebrow">Müdahale</span>
+            <%= sidebar_soon "Olaylar" %>
+            <%= sidebar_link "Alarmlar", alerts_path %>
+            <%= sidebar_soon "Post-incident" %>
+          </div>
+
+          <div class="sidebar__group">
+            <span class="eyebrow">Nöbet</span>
+            <%= sidebar_link "Takvimler", schedules_path %>
+            <%= sidebar_link "Müsaitliğim", unavailabilities_path %>
             <% if Current.user.manager? %>
-              <li><%= link_to "Servisler", services_path %></li>
-              <li><%= link_to "Akademik takvim", blackout_periods_path %></li>
-              <% if TimeSkip.enabled? %>
-                <li><%= link_to "Zaman sıçraması", new_time_skip_path %></li>
-              <% end %>
+              <%= sidebar_link "Akademik takvim", blackout_periods_path %>
             <% end %>
-          </ul>
-          <ul>
-            <li><small><%= Current.user.name %> · <%= enum_label(Current.user, :role) %></small></li>
-            <li><%= button_to "Çıkış", session_path, method: :delete %></li>
-          </ul>
-        <% end %>
-      </nav>
-    </header>
+          </div>
 
-    <main>
-      <% flash.each do |type, message| %>
-        <div role="alert" class="flash-<%= type %>"><%= message %></div>
-      <% end %>
+          <% if Current.user.manager? %>
+            <div class="sidebar__group">
+              <span class="eyebrow">Yönetim</span>
+              <%= sidebar_link "Servisler", services_path %>
+              <% if TimeSkip.enabled? %>
+                <%= sidebar_link "Zaman sıçraması", new_time_skip_path %>
+              <% end %>
+            </div>
+          <% end %>
 
-      <%= yield %>
-    </main>
+          <div class="sidebar__group">
+            <span class="eyebrow">Halka açık</span>
+            <%= sidebar_soon "Status page" %>
+          </div>
+        </nav>
+
+        <div class="sidebar__user">
+          <div class="sidebar__user-name"><%= Current.user.name %></div>
+          <div class="muted"><%= enum_label(Current.user, :role) %></div>
+          <%= button_to "Çıkış", session_path, method: :delete, class: btn_class(:ghost, size: :sm) %>
+        </div>
+      </aside>
+
+      <div>
+        <header class="topbar">
+          <div class="topbar__search" role="search">
+            <label for="topbar-search" class="visually-hidden">Ara</label>
+            <input id="topbar-search" type="search" placeholder="Olay ara (yakında)" disabled>
+          </div>
+          <button type="button" class="<%= btn_class(:accent) %>" disabled title="Olay ilan etme ekranı Faz E'de">Olay ilan et</button>
+        </header>
+
+        <main class="main" id="main">
+          <div class="main__inner">
+            <%= yield %>
+          </div>
+        </main>
+      </div>
+    </div>
   </body>
 </html>

@@ -1,0 +1,140 @@
+<% content_for :title, "Tasarım sistemi" %>
+
+<%= render layout: "components/page_header", locals: { eyebrow: "Yalnızca geliştirme", title: "Tasarım sistemi",
+      lead: "Token'lar app/assets/stylesheets/tokens.css, bileşenler app/views/components/. Sıcak, sakin, editoryal." } do %>
+  <%= link_to "Pano", root_path, class: btn_class(:secondary) %>
+<% end %>
+
+<%= render layout: "components/card", locals: { title: "Renk token'ları" } do %>
+  <p class="muted">Metin için yalnızca "-ink" varyantları kullanılır (WCAG AA ≥ 4.5:1). Ana severity renkleri nokta, kenarlık ve dekor içindir.</p>
+  <% @tokens.each do |group, names| %>
+    <h3><%= group %></h3>
+    <div class="token-grid">
+      <% names.each do |name| %>
+        <div class="token" data-token="<%= name %>">
+          <span class="token__swatch" style="background: var(<%= name %>)"></span>
+          <code><%= name %></code>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>
+
+<%= render layout: "components/card", locals: { title: "Tipografi" } do %>
+  <%= render "components/eyebrow", text: "Aktif olaylar" %>
+  <h1 style="font-size: var(--sa-text-4xl)">Şu an her şey yolunda.</h1>
+  <h2 style="margin-top: 0">Serif başlık · Newsreader 400, -0.02em</h2>
+  <p>Gövde metni Inter 400/500. Kriz anında panik değil, güven veren bir arayüz.</p>
+  <p class="mono">INC-042 · <%= mono_time(Time.current) %> · Geist Mono</p>
+<% end %>
+
+<%= render layout: "components/card", locals: { title: "Butonlar" } do %>
+  <div class="row">
+    <button type="button" class="<%= btn_class(:primary) %>">Birincil</button>
+    <button type="button" class="<%= btn_class(:accent) %>">Olay ilan et</button>
+    <button type="button" class="<%= btn_class(:secondary) %>">İkincil</button>
+    <button type="button" class="<%= btn_class(:ghost) %>">Hayalet</button>
+    <button type="button" class="<%= btn_class(:secondary) %>" disabled>Devre dışı</button>
+    <button type="button" class="<%= btn_class(:secondary, size: :sm) %>">Küçük</button>
+  </div>
+  <p class="muted" style="margin-top: var(--sa-space-4)">Vurgulu buton yalnızca tek kritik eylemde kullanılır.</p>
+<% end %>
+
+<%= render layout: "components/card", locals: { title: "Rozetler" } do %>
+  <h3 style="margin-top: 0">Severity</h3>
+  <div class="row">
+    <% Incident.severities.each_key do |severity| %><%= severity_badge(Incident.new(severity: severity)) %><% end %>
+  </div>
+  <h3>Olay durumu</h3>
+  <div class="row">
+    <% Incident.statuses.each_key do |status| %><%= incident_status_badge(Incident.new(status: status)) %><% end %>
+  </div>
+  <h3>Alarm durumu</h3>
+  <div class="row">
+    <% Alert.statuses.each_key do |status| %><%= alert_status_badge(Alert.new(status: status)) %><% end %>
+    <%= badge("Nötr", tone: :neutral) %>
+  </div>
+<% end %>
+
+<div class="card-grid">
+  <%= render layout: "components/card", locals: { title: "Kart" } do %>
+    <p>Beyaz zemin, ince kenarlık, 16px köşe, hafif gölge, 24px iç boşluk.</p>
+  <% end %>
+  <%= render layout: "components/card", locals: { title: "Soluk kart", muted: true } do %>
+    <p>İkincil alanlar için kum zemin.</p>
+  <% end %>
+</div>
+
+<%= render layout: "components/card", locals: { title: "Uyarı bantları" } do %>
+  <div class="banner banner--critical"><strong>Güncelleme gecikti.</strong> Kritik olayda 30 dakikadır güncelleme yazılmadı.</div>
+  <div class="banner"><strong>Postmortem gecikti.</strong> Olay çözüleli 5 gün oldu, postmortem yayınlanmadı.</div>
+  <div class="banner banner--info">Bilgi bandı.</div>
+<% end %>
+
+<h2>Tablo</h2>
+<%= render layout: "components/table", locals: { headers: [ "Kimlik", "Başlık", "Önem", "Durum", "Açılış" ] } do %>
+  <% [ [ 42, "Öğrenci girişi kapalı", :critical, :investigating ], [ 41, "Ders kaydı yavaş", :major, :monitoring ],
+       [ 40, "Transkript gecikmeli", :minor, :resolved ] ].each do |id, title, severity, status| %>
+    <% sample = Incident.new(id: id, severity: severity, status: status) %>
+    <tr>
+      <td class="mono"><%= incident_ref(sample) %></td>
+      <td><a href="#"><%= title %></a></td>
+      <td><%= severity_badge(sample) %></td>
+      <td><%= incident_status_badge(sample) %></td>
+      <td><%= mono_time(Time.current - id.minutes) %></td>
+    </tr>
+  <% end %>
+<% end %>
+
+<div class="filters">
+  <a href="#" class="filter-pill" aria-current="true">Tümü</a>
+  <a href="#" class="filter-pill">Kritik</a>
+  <a href="#" class="filter-pill">İnceleniyor</a>
+</div>
+
+<%= render layout: "components/card", locals: { title: "Zaman çizelgesi" } do %>
+  <%= render "components/timeline", items: [
+        { time: Time.current - 40.minutes, author: "Ayşe Kaya", kind_label: "Olay ilan edildi", tone: :accent,
+          badge: incident_status_badge(Incident.new(status: :triage)) },
+        { time: Time.current - 25.minutes, author: "Burak Demir", kind_label: "Güncelleme", tone: :info,
+          body: "SSO sağlayıcısında sertifika süresi dolmuş; yenileniyor." },
+        { time: Time.current - 5.minutes, author: "Ayşe Kaya", kind_label: "Durum değişti", tone: :ok,
+          badge: incident_status_badge(Incident.new(status: :resolved)) }
+      ] %>
+<% end %>
+
+<%= render "components/empty_state", message: "Şu an her şey yolunda.", action_label: "Olaylara git", action_path: "#" %>
+
+<%= render layout: "components/card", locals: { title: "Durum göstergesi (durum sayfası)" } do %>
+  <%= render "components/status_indicator", name: "Öğrenci Bilgi Sistemi", state: :partial,
+             days: %i[operational operational major operational operational partial partial] %>
+  <%= render "components/status_indicator", name: "Laboratuvar Rezervasyon", state: :operational,
+             days: %i[operational] * 7 %>
+<% end %>
+
+<%= render layout: "components/card", locals: { title: "Toast" } do %>
+  <div class="toast" style="position: static" role="status"><div class="toast__body">Güncelleme yayınlandı.</div></div>
+  <div class="toast toast--alert" style="position: static; margin-top: var(--sa-space-2)" role="status"><div class="toast__body">Postmortem yayınlanmadan kapatılamaz.</div></div>
+<% end %>
+
+<%= render layout: "components/card", locals: { title: "Form" } do %>
+  <div class="field">
+    <label for="demo-title">Başlık</label>
+    <input id="demo-title" type="text" value="Öğrenci girişi kapalı">
+    <p class="field__hint">Kısa ve somut: ne bozuk, kimi etkiliyor.</p>
+  </div>
+  <div class="field">
+    <label for="demo-severity">Önem</label>
+    <select id="demo-severity"><option>Kritik</option><option>Büyük</option><option>Küçük</option></select>
+  </div>
+  <div class="field">
+    <label for="demo-body">Güncelleme</label>
+    <textarea id="demo-body">Bağlantı havuzunu yeniden başlattık, izliyoruz.</textarea>
+  </div>
+  <button type="button" class="<%= btn_class(:primary) %>">Güncellemeyi yayınla</button>
+<% end %>
+
+<%= render layout: "components/card", locals: { title: "Logo" } do %>
+  <%= render "components/logo", path: root_path %>
+  <p class="muted" style="margin-top: var(--sa-space-4)">Kelime işareti (serif) + devir-teslim oku: nöbeti "sen al".</p>
+<% end %>

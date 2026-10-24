@@ -1,0 +1,67 @@
+/*
+ * SenAl tasarım token'ları: tek kaynak. Diğer bütün CSS bu değişkenleri kullanır; değer tekrar yazılmaz.
+ * Karakter: sıcak, sakin, editoryal. Kum zemin, kömür metin, tek sıcak vurgu.
+ *
+ * Erişilebilirlik (WCAG AA, normal metin 4.5:1): verilen severity/durum renkleri kendi soft zeminlerinde
+ * metin olarak 2.2–4.1 arası kalıyordu. Metin için aynı tonun koyu "-ink" varyantları eklendi (hepsi
+ * soft, beyaz, bg ve surface-muted zeminlerde ≥ 4.6). Ana renkler nokta, kenarlık ve dekor içindir.
+ */
+:root {
+  /* Zeminler */
+  --sa-bg:            #F8F5F0;  /* açık kum, sayfa zemini */
+  --sa-surface:       #FFFFFF;  /* kart */
+  --sa-surface-muted: #F1EBE2;  /* kum, ikincil alan, tablo başlığı */
+  --sa-border:        #E4D9C8;  /* koyu kum, kenarlık/ayırıcı */
+
+  /* Metin */
+  --sa-ink:         #161618;    /* kömür, ana metin + koyu bölümler (bg üzerinde 16.6) */
+  --sa-ink-muted:   #5E5A54;    /* bg 6.3, surface-muted 5.8 */
+  --sa-ink-subtle:  #6D6861;    /* önerilen #8C867D bg'de 3.3 idi; AA için koyulaştırıldı (bg 5.1) */
+  --sa-ink-faint:   #8C867D;    /* yalnızca dekor/ikon, metin için kullanılmaz */
+  --sa-ink-inverse: #F8F5F0;
+
+  /* Vurgu (SenAl'ın kendi tonu) */
+  --sa-accent:        #E4572E;  /* dekor, odak halkası (bg'ye karşı 3.4, metin dışı öğe için ≥ 3) */
+  --sa-accent-hover:  #C9461F;
+  --sa-accent-soft:   #FCE6DE;
+  --sa-accent-strong: var(--sa-accent-hover); /* vurgulu buton zemini: beyaz metinle 4.8 (#E4572E ile 3.7 idi) */
+  --sa-accent-strong-hover: #B53F1C; /* beyaz metinle 5.7 */
+  --sa-accent-ink:    #BA3D18;  /* vurgu rengi metin/link: soft 4.65, beyaz 5.57 */
+  --sa-deep:          #4A1020;  /* koyu bordo, footer/hero vurgusu (açık metinle 13.9) */
+
+  /* Severity */
+  --sa-sev-critical: #D92D20;  --sa-sev-critical-soft: #FDE8E7;  --sa-sev-critical-ink: #C92A1E;
+  --sa-sev-major:    #E8820C;  --sa-sev-major-soft:    #FDF0DC;  --sa-sev-major-ink:    #9D5808;
+  --sa-sev-minor:    #C9A20A;  --sa-sev-minor-soft:    #FBF5D9;  --sa-sev-minor-ink:    #7E6506;
+
+  /* Durum */
+  --sa-ok:   #2E8B57;  --sa-ok-soft:   #E3F2E9;  --sa-ok-ink:   #27764A;
+  --sa-info: #3B6FD8;  --sa-info-soft: #E5EDFB;  --sa-info-ink: #2A63D4;
+
+  /* Tipografi (açık lisanslı; Google Fonts) */
+  --sa-font-display: "Newsreader", "Source Serif 4", Georgia, serif;
+  --sa-font-sans:    "Inter", system-ui, -apple-system, sans-serif;
+  --sa-font-mono:    "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
+
+  /* Ölçek */
+  --sa-text-xs: 12px;  --sa-text-sm: 14px;  --sa-text-base: 16px;
+  --sa-text-lg: 18px;  --sa-text-xl: 24px;  --sa-text-2xl: 32px;
+  --sa-text-3xl: 48px; --sa-text-4xl: 64px;
+
+  /* Boşluk (4px tabanlı) */
+  --sa-space-1: 4px;  --sa-space-2: 8px;  --sa-space-3: 12px;
+  --sa-space-4: 16px; --sa-space-6: 24px; --sa-space-8: 32px;
+  --sa-space-12: 48px; --sa-space-16: 64px; --sa-space-24: 96px;
+
+  /* Köşe ve gölge */
+  --sa-radius-sm: 6px;  --sa-radius-md: 10px;  --sa-radius-lg: 16px;
+  --sa-radius-pill: 999px;
+  --sa-shadow-card: 0 1px 2px rgba(22,22,24,.04), 0 1px 1px rgba(22,22,24,.03);
+  --sa-shadow-pop:  0 8px 24px rgba(22,22,24,.10);
+
+  /* Düzen */
+  --sa-sidebar-width: 240px;
+  --sa-content-max: 1200px;
+  --sa-control-height: 40px;
+  --sa-focus-ring: 2px solid var(--sa-accent);
+}

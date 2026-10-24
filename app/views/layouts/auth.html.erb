@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <%= render "layouts/head" %>
+  </head>
+
+  <body>
+    <%= render "components/toasts" %>
+
+    <main class="auth" id="main">
+      <div class="auth__box">
+        <div class="auth__brand"><%= render "components/logo", path: root_path %></div>
+        <div class="card">
+          <%= yield %>
+        </div>
+        <p class="auth__tagline">Ben yapamıyorum, sen al: nöbet devri ve olay yönetimi.</p>
+      </div>
+    </main>
+  </body>
+</html>
