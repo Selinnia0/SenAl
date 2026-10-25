@@ -42,20 +42,26 @@
 
     <%= render layout: "components/card", locals: { title: "Roller" } do %>
       <dl class="roles">
-        <dt>Olay lideri</dt>
-        <dd><%= @incident.lead&.name || "—" %></dd>
-        <dt>İletişim sorumlusu</dt>
-        <dd><%= @incident.communications_lead&.name || "—" %></dd>
-      </dl>
-      <% unless @incident.final? %>
-        <%= form_with url: incident_role_assignments_path(@incident) do |form| %>
-          <div class="row">
-            <%= select_tag :role, options_for_select(IncidentRoleAssignment.roles.keys.map { |role| [ t("enums.incident_role_assignment.role.#{role}"), role ] }), "aria-label": "Rol" %>
-            <%= select_tag :user_id, options_from_collection_for_select(@users, :id, :name), "aria-label": "Kişi" %>
-          </div>
-          <%= form.submit "Ata", class: btn_class(:secondary, size: :sm) %>
+        <% IncidentRoleAssignment.roles.each_key do |role| %>
+          <% label = t("enums.incident_role_assignment.role.#{role}") %>
+          <% current = @incident.role_assignments.detect { |assignment| assignment.role == role }&.user %>
+          <dt><label for="role_<%= role %>_user"><%= label %></label></dt>
+          <dd>
+            <% if @incident.final? %>
+              <%= current&.name || "—" %>
+            <% else %>
+              <%# Kişi değişince form kendiliğinden gönderilir; JS yoksa "Kaydet" butonu. %>
+              <%= form_with url: incident_role_assignments_path(@incident), class: "role-form", data: { controller: "auto-submit" } do |form| %>
+                <%= hidden_field_tag :role, role, id: nil %>
+                <%= select_tag :user_id, options_from_collection_for_select(@users, :id, :name, current&.id),
+                               prompt: (current ? nil : "Atanmadı"), id: "role_#{role}_user",
+                               data: { action: "change->auto-submit#submit" } %>
+                <noscript><%= form.submit "Kaydet", class: btn_class(:secondary, size: :sm) %></noscript>
+              <% end %>
+            <% end %>
+          </dd>
         <% end %>
-      <% end %>
+      </dl>
     <% end %>
 
     <% unless @incident.final? %>

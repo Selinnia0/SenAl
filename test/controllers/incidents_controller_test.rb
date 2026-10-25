@@ -109,6 +109,29 @@ class IncidentsControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-cable-stream-source"
   end
 
+  test "roller: her rol kendi satırında, şu anki kişi seçili açılır liste; değişince kendiliğinden gönderilir" do
+    incident = incidents(:investigating_major) # lider Ayşe, iletişim sorumlusu yok
+    get incident_path(incident)
+
+    assert_select ".roles form[action=?]", incident_role_assignments_path(incident), 2
+    assert_select ".roles form" do |forms|
+      forms.each { |form| assert_equal "auto-submit", form["data-controller"] }
+    end
+    assert_select ".roles input[type=hidden][name=role][value=lead]"
+    assert_select ".roles select[name=user_id][data-action='change->auto-submit#submit']", 2
+    assert_select "#role_lead_user option[selected][value=?]", @alice.id.to_s
+    assert_select "#role_communications_user option[selected]", count: 0
+    assert_select "#role_communications_user option[value='']", text: "Atanmadı"
+    assert_select "label[for=role_lead_user]", "Olay lideri"
+    assert_select ".roles select[name=role]", count: 0, message: "ayrı rol seçimi kalktı"
+  end
+
+  test "roller: kapanmış olayda açılır liste yok, yalnızca isimler" do
+    get incident_path(incidents(:closed_major))
+    assert_select ".roles select", count: 0
+    assert_select ".roles dd", text: "Ayşe Kaya"
+  end
+
   test "detay: yalnızca izinli geçiş butonları görünür" do
     get incident_path(incidents(:triage_critical))
     assert_select ".transitions button", 2
