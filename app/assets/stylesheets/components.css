@@ -186,15 +186,11 @@
   .logo__mark svg { width: 18px; height: 18px; }
   .logo__word { font-family: var(--sa-font-display); font-size: var(--sa-text-xl); letter-spacing: -0.02em; line-height: 1; }
 
-  /* ---------- Eski sayfaların sınıfları (Faz E'de bileşenlere taşınacak) ---------- */
+  /* ---------- Satır içi eylemler ve boşluk satırı ---------- */
   .inline-actions { display: flex; gap: var(--sa-space-2); flex-wrap: wrap; align-items: center; }
   .inline-actions form, .inline-actions button { margin: 0; }
   td form, td button { margin: 0; }
   tr.gap td, tr.gap th { background: var(--sa-sev-critical-soft); color: var(--sa-sev-critical-ink); }
-  .status { font-weight: 600; }
-  .status-triggered { color: var(--sa-sev-critical-ink); }
-  .status-acknowledged { color: var(--sa-sev-major-ink); }
-  .status-resolved { color: var(--sa-ok-ink); }
 }
 
 @layer utilities {
@@ -232,4 +228,18 @@
 
   aside .card select, aside .card textarea, aside .card input { margin-bottom: var(--sa-space-2); }
   aside .card .btn { margin-top: var(--sa-space-1); }
+}
+
+@layer components {
+  /* Sayfa başlığındaki satır içi arama */
+  .inline-search { min-width: 240px; }
+  .inline-search input { margin: 0; }
+}
+
+@layer components {
+  .form-card { max-width: 720px; }
+  .member-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--sa-space-2); }
+  .preset-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sa-space-2); }
+  .preset-grid form { display: block; }
+  .page-header__actions form { display: inline-flex; }
 }

@@ -1,49 +1,63 @@
 <% content_for :title, @service.name %>
 
-<h1><%= @service.name %></h1>
+<%= render layout: "components/page_header", locals: { eyebrow: "Servis", title: @service.name,
+      lead: "Alarmlar bu servisin entegrasyon anahtarıyla gelir ve eskalasyon politikasına göre nöbetçiye gider." } do %>
+  <%= link_to "Düzenle", edit_service_path(@service), class: btn_class(:secondary) %>
+  <%= button_to "Sil", service_path(@service), method: :delete, class: btn_class(:ghost) %>
+<% end %>
 
-<dl>
-  <dt>Entegrasyon anahtarı</dt>
-  <dd><code><%= @service.integration_key %></code></dd>
-  <dt>Eskalasyon politikası</dt>
-  <dd>
-    <%= @service.escalation_policy.name %>:
-    <%= @service.escalation_policy.escalation_levels.includes(:schedule).map { |level|
-          "#{level.position + 1}. #{level.schedule.name} (#{level.timeout_minutes} dk)" }.join(" → ") %>
-    · <%= @service.escalation_policy.repeat_count %> tur tekrar
-  </dd>
-  <dt>"Gördüm" sıfırlama süresi</dt>
-  <dd><%= @service.ack_reset_minutes %> dakika</dd>
-</dl>
+<div class="detail-grid">
+  <div>
+    <%= render layout: "components/card", locals: { title: "Deneme alarmı gönder" } do %>
+      <p class="muted">Terminal açmadan alarm göndermek için. API ile aynı kurallar işler (aynı <code>dedup_key</code> → yeni alarm açılmaz).</p>
+      <%= form_with scope: :alert, url: test_alert_service_path(@service) do |form| %>
+        <div class="field">
+          <%= form.label :summary, "Başlık" %>
+          <%= form.text_field :summary, required: true, value: "db1 disk %95" %>
+        </div>
+        <div class="row">
+          <div class="field" style="flex: 1; min-width: 200px">
+            <%= form.label :severity, "Önem" %>
+            <%= form.select :severity, [ [ "critical (yüksek, eskale edilir)", "critical" ], [ "error (yüksek, eskale edilir)", "error" ], [ "warning (düşük)", "warning" ], [ "info (düşük)", "info" ] ] %>
+          </div>
+          <div class="field" style="flex: 1; min-width: 200px">
+            <%= form.label :dedup_key, "Tekilleştirme anahtarı" %>
+            <%= form.text_field :dedup_key, placeholder: "boşsa rastgele" %>
+          </div>
+        </div>
+        <%= form.submit "Alarm gönder", class: btn_class(:primary) %>
+      <% end %>
+    <% end %>
 
-<section>
-  <h2>Deneme alarmı gönder</h2>
-  <p><small>Terminal açmadan alarm göndermek için. API ile aynı kurallar işler (aynı <code>dedup_key</code> → yeni alarm açılmaz).</small></p>
-  <%= form_with scope: :alert, url: test_alert_service_path(@service) do |form| %>
-    <%= form.label :summary, "Başlık" %>
-    <%= form.text_field :summary, required: true, value: "db1 disk %95" %>
-
-    <%= form.label :severity, "Önem (critical/error → yüksek aciliyet, eskale edilir)" %>
-    <%= form.select :severity, [ [ "critical (yüksek)", "critical" ], [ "error (yüksek)", "error" ], [ "warning (düşük)", "warning" ], [ "info (düşük)", "info" ] ] %>
-
-    <%= form.label :dedup_key, "Tekilleştirme anahtarı (boşsa rastgele)" %>
-    <%= form.text_field :dedup_key, placeholder: "ör. disk-full-db1" %>
-
-    <%= form.submit "Alarm gönder" %>
-  <% end %>
-</section>
-
-<section data-controller="clipboard">
-  <h2>Örnek alarm</h2>
-  <pre data-clipboard-target="source">curl -X POST <%= api_v1_events_url %> \
+    <%= render layout: "components/card", locals: { title: "API ile alarm" } do %>
+      <div data-controller="clipboard">
+        <pre data-clipboard-target="source">curl -X POST <%= api_v1_events_url %> \
   -H "Authorization: Token token=<%= @service.integration_key %>" \
   -H "Content-Type: application/json" \
   -d '{"event_action":"trigger","dedup_key":"disk-full-db1","summary":"db1 disk %95","severity":"critical"}'</pre>
-  <button type="button" data-action="clipboard#copy">Kopyala</button>
-  <p><small>Çözmek için aynı <code>dedup_key</code> ile <code>"event_action":"resolve"</code> gönderin.</small></p>
-</section>
+        <button type="button" class="<%= btn_class(:secondary, size: :sm) %>" data-action="clipboard#copy">Kopyala</button>
+      </div>
+      <p class="muted" style="margin-top: var(--sa-space-3)">Çözmek için aynı <code>dedup_key</code> ile <code>"event_action":"resolve"</code> gönderin.</p>
+    <% end %>
+  </div>
 
-<div class="inline-actions">
-  <%= link_to "Düzenle", edit_service_path(@service) %>
-  <%= button_to "Sil", service_path(@service), method: :delete %>
+  <aside aria-label="Servis ayarları">
+    <%= render layout: "components/card", locals: { title: "Entegrasyon anahtarı" } do %>
+      <p><code><%= @service.integration_key %></code></p>
+      <p class="muted">Gizli tutun: bu anahtarı bilen herkes bu servis adına alarm gönderebilir.</p>
+    <% end %>
+
+    <%= render layout: "components/card", locals: { title: "Eskalasyon" } do %>
+      <p class="muted"><%= @service.escalation_policy.name %> · <%= @service.escalation_policy.repeat_count %> tur tekrar</p>
+      <ol class="plain-list">
+        <% @service.escalation_policy.escalation_levels.includes(:schedule).each do |level| %>
+          <li><span class="mono">Seviye <%= level.position + 1 %></span> · <%= link_to level.schedule.name, level.schedule %> · <span class="mono"><%= level.timeout_minutes %> dk</span></li>
+        <% end %>
+      </ol>
+      <dl class="roles">
+        <dt>"Gördüm" sıfırlama süresi</dt>
+        <dd class="mono"><%= @service.ack_reset_minutes %> dakika</dd>
+      </dl>
+    <% end %>
+  </aside>
 </div>

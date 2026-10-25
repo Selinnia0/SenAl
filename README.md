@@ -208,7 +208,6 @@ araması, çoklu organizasyon. (v1'den: mobil uygulama, SLO/analitik raporlar, o
 - Canlı güncellemenin iki tarayıcı arasında çalıştığı elle denenmedi; yayın testli, WebSocket el sıkışması denendi.
 - Gecikme bantları (Z3/Z4) zaman geçince sayfayı kendiliğinden yenilemez; hatırlatıcı bildirimi gider.
 - "5 gün" takvim günüdür (iş günü için gem gerekir).
-- Takvim, müsaitlik, servis ve akademik takvim ekranları yeni temel stillerle çalışır ama bileşenlere taşınmadı.
 
 ## Adaptasyonun kaynakları
 

@@ -12,6 +12,7 @@ class Alert < ApplicationRecord
   belongs_to :assignee, class_name: "User", optional: true
   has_many :alert_events, -> { order(:occurred_at, :id) }, dependent: :destroy, inverse_of: :alert
   has_many :notifications, dependent: :destroy
+  has_many :incidents, dependent: :nullify # bu alarmdan ilan edilen olaylar
 
   enum :status, { triggered: 0, acknowledged: 1, resolved: 2 }, validate: true
   enum :urgency, { high: 0, low: 1 }, validate: true

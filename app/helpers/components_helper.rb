@@ -10,6 +10,7 @@ module ComponentsHelper
     "resolved" => :ok, "closed" => :neutral, "declined" => :neutral
   }.freeze
   ALERT_STATUS_TONES = { "triggered" => :critical, "acknowledged" => :major, "resolved" => :ok }.freeze
+  URGENCY_TONES = { "high" => :critical, "low" => :neutral }.freeze
 
   def btn_class(variant = :secondary, size: nil, block: false)
     raise ArgumentError, "Bilinmeyen buton türü: #{variant}" unless BUTTON_VARIANTS.include?(variant.to_sym)
@@ -31,6 +32,15 @@ module ComponentsHelper
 
   def alert_status_badge(alert)
     badge(enum_label(alert, :status), tone: ALERT_STATUS_TONES.fetch(alert.status))
+  end
+
+  def urgency_badge(alert)
+    badge(enum_label(alert, :urgency), tone: URGENCY_TONES.fetch(alert.urgency))
+  end
+
+  # ALR-007
+  def alert_ref(alert)
+    format("ALR-%03d", alert.id)
   end
 
   # INC-042

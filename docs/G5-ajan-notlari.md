@@ -36,4 +36,5 @@ Bundan önce insan ajanın bir uydurmasını düzeltmedi; istekleri (kayıt sayf
 | E | `PostmortemsController#publish` içine gereksiz ve okunmaz bir satır yazdı. | Kendi okuması | Domain doğrulamasına bırakıldı (tek satır) |
 | F | AGENT.md'ye "tokens.css dışında hex yok" yazdı; kodda 8 sabit renk vardı. | Kuralı grep ile doğrularken | Renkler token'a taşındı, koruma testi eklendi |
 | B | Doğrulama komutunda var olmayan bir metot (`migration_context`) kullandı. | Komut çıktısı | Sonuç başka çıktıdan okundu; uygulamayla ilgisi yok |
+| E | **İnsan bildirdi:** Alarmlar ve diğer eski ekranlar ham kaldı (madde işaretli filtreler, sayfa başlığı ve rozet yok). Ajan bunu "spec dört ekran istiyordu" diye yapamadıklarım listesine yazıp geçmişti; ekranlar gerçek kullanımdaydı. | İnsanın ekran görüntüsü | Bütün eski ekranlar bileşenlere taşındı; Alarmlar'a durum + aciliyet filtresi, arama, canlı yenileme; genel düzen testi eklendi |
 

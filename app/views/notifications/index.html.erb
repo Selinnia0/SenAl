@@ -1,30 +1,31 @@
 <% content_for :title, "Bildirimlerim" %>
 
-<h1>Bildirimlerim</h1>
+<%= render layout: "components/page_header", locals: { eyebrow: "Gelen kutusu", title: "Bildirimlerim",
+      lead: "Okunmamış bildirimler: alarm çağrıları, olay hatırlatıcıları ve nöbet boşluğu raporları." } do %>
+  <% if @notifications.any? %>
+    <%= button_to "Tümünü okundu işaretle", read_all_notifications_path, method: :patch, class: btn_class(:secondary) %>
+  <% end %>
+<% end %>
 
 <% if @notifications.any? %>
-  <%= button_to "Tümünü okundu işaretle", read_all_notifications_path, method: :patch %>
-
-  <table>
-    <thead>
-      <tr><th>Zaman</th><th>Bildirim</th><th></th></tr>
-    </thead>
-    <tbody>
-      <% @notifications.each do |notification| %>
-        <tr>
-          <td><%= format_time(notification.created_at) %></td>
-          <% if notification.alert %>
-            <td><%= link_to notification.alert.title, notification.alert %></td>
-          <% elsif notification.incident %>
-            <td><%= link_to notification.message, notification.incident %></td>
-          <% else %>
-            <td><%= simple_format(notification.message, {}, wrapper_tag: "span") %></td>
-          <% end %>
-          <td><%= button_to "Okundu", read_notification_path(notification), method: :patch %></td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
+  <%= render layout: "components/table", locals: { headers: [ "Zaman", "Tür", "Bildirim", "" ] } do %>
+    <% @notifications.each do |notification| %>
+      <tr>
+        <td><%= mono_time(notification.created_at) %> <span class="muted"><%= format_date(notification.created_at.to_date) %></span></td>
+        <% if notification.alert %>
+          <td><%= badge("Alarm", tone: :critical) %></td>
+          <td><%= link_to notification.alert.title, notification.alert %></td>
+        <% elsif notification.incident %>
+          <td><%= badge("Olay", tone: :accent) %></td>
+          <td><%= link_to notification.message, notification.incident %></td>
+        <% else %>
+          <td><%= badge("Nöbet boşluğu", tone: :major) %></td>
+          <td><%= simple_format(notification.message, {}, wrapper_tag: "span") %></td>
+        <% end %>
+        <td><%= button_to "Okundu", read_notification_path(notification), method: :patch, class: btn_class(:ghost, size: :sm) %></td>
+      </tr>
+    <% end %>
+  <% end %>
 <% else %>
-  <p>Okunmamış bildiriminiz yok.</p>
+  <%= render "components/empty_state", message: "Okunmamış bildiriminiz yok." %>
 <% end %>

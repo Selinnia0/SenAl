@@ -3,11 +3,13 @@ module Api
     # İnce controller: kimlik doğrular, gövdeyi EventIngestor'a verir. CSRF yok (ActionController::API).
     class EventsController < ActionController::API
       include ActionController::HttpAuthentication::Token::ControllerMethods
+      include LiveRefresh
 
       before_action :authenticate_service
 
       def create
         result = EventIngestor.new(@service).call(payload)
+        broadcast_refresh(:alerts) if result.http_status == :accepted
         render json: result.body, status: result.http_status
       end
 

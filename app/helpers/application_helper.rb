@@ -13,9 +13,6 @@ module ApplicationHelper
     t("enums.#{record.model_name.i18n_key}.#{attribute}.#{value}", default: value.to_s.humanize)
   end
 
-  def status_tag(alert)
-    tag.span(enum_label(alert, :status), class: "status status-#{alert.status}")
-  end
 
   def event_label(event)
     t("enums.alert_event.kind.#{event.kind}", default: event.kind)

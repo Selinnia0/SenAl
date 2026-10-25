@@ -1,78 +1,70 @@
 <% content_for :title, @schedule.name %>
 
-<h1><%= @schedule.name %></h1>
-<p>
-  Rotasyon: <%= @schedule.rotation_days %> gün · ilk devir: <%= format_time(@schedule.starts_at) %>.
-  İzinli kişiler ve akademik kapanma dönemleri otomatik atlanır.
-</p>
+<%= render layout: "components/page_header", locals: { eyebrow: "Nöbet · #{@schedule.rotation_days} günlük rotasyon",
+      title: @schedule.name, lead: "İlk devir #{format_time(@schedule.starts_at)}. İzinli kişiler ve akademik kapanma dönemleri otomatik atlanır." } do %>
+  <%= link_to "Tüm takvimler", schedules_path, class: btn_class(:ghost) %>
+<% end %>
 
-<section>
-  <h2>Üyeler</h2>
-  <ol>
-    <% @memberships.each do |membership| %>
-      <li><%= membership.user.name %> (<%= enum_label(membership.user, :academic_role) %>)</li>
+<div class="detail-grid">
+  <div>
+    <h2 style="margin-top: 0">Önümüzdeki <%= ScheduleCalendar::CALENDAR_DAYS %> gün</h2>
+    <%= render layout: "components/table", locals: { headers: [ "Gün", "Nöbetçi(ler)", "Durum" ], id: "on-call-days" } do %>
+      <% @days.each do |day| %>
+        <tr class="<%= "gap" if day.gap %>">
+          <td class="mono"><%= l(day.date, format: :weekday) %></td>
+          <td><%= day.users.map(&:name).join(", ").presence || "—" %></td>
+          <td><%= day.gap ? badge("Boşluk var", tone: :critical) : badge("Tam", tone: :ok) %></td>
+        </tr>
+      <% end %>
     <% end %>
-  </ol>
-</section>
 
-<section>
-  <h2>Önümüzdeki <%= ScheduleCalendar::CALENDAR_DAYS %> gün</h2>
-  <div style="overflow-x: auto">
-    <table id="on-call-days">
-      <thead>
-        <tr><th>Gün</th><th>Nöbetçi(ler)</th><th>Durum</th></tr>
-      </thead>
-      <tbody>
-        <% @days.each do |day| %>
-          <tr class="<%= "gap" if day.gap %>">
-            <td><%= l(day.date, format: :weekday) %></td>
-            <td><%= day.users.map(&:name).join(", ").presence || "—" %></td>
-            <td><%= day.gap ? "Boşluk var" : "Tam" %></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<section>
-  <h2>Elle değişiklikler (override)</h2>
-  <% if @overrides.any? %>
-    <table>
-      <thead>
-        <tr><th>Kişi</th><th>Başlangıç</th><th>Bitiş</th><th></th></tr>
-      </thead>
-      <tbody>
+    <h2>Elle değişiklikler (override)</h2>
+    <% if @overrides.any? %>
+      <%= render layout: "components/table", locals: { headers: [ "Kişi", "Başlangıç", "Bitiş", "" ] } do %>
         <% @overrides.each do |override| %>
           <tr>
             <td><%= override.user.name %></td>
-            <td><%= format_time(override.starts_at) %></td>
-            <td><%= format_time(override.ends_at) %></td>
+            <td><%= mono_time(override.starts_at) %> <span class="muted"><%= format_date(override.starts_at.to_date) %></span></td>
+            <td><%= mono_time(override.ends_at) %> <span class="muted"><%= format_date(override.ends_at.to_date) %></span></td>
             <td>
               <% if Current.user.manager? %>
-                <%= button_to "Sil", schedule_override_path(@schedule, override), method: :delete %>
+                <%= button_to "Sil", schedule_override_path(@schedule, override), method: :delete, class: btn_class(:ghost, size: :sm) %>
               <% end %>
             </td>
           </tr>
         <% end %>
-      </tbody>
-    </table>
-  <% else %>
-    <p>Aktif elle değişiklik yok.</p>
-  <% end %>
+      <% end %>
+    <% else %>
+      <p class="muted">Aktif elle değişiklik yok.</p>
+    <% end %>
+  </div>
 
-  <h3>Elle değişiklik ekle</h3>
-  <%= render "shared/errors", record: @override %>
-  <%= form_with model: @override, url: schedule_overrides_path(@schedule) do |form| %>
-    <%= form.label :user_id, "Kişi" %>
-    <%= form.collection_select :user_id, @users, :id, :name %>
+  <aside aria-label="Takvim paneli">
+    <%= render layout: "components/card", locals: { title: "Üyeler" } do %>
+      <ol class="plain-list member-list">
+        <% @memberships.each do |membership| %>
+          <li><%= membership.user.name %> <%= badge(enum_label(membership.user, :academic_role), tone: (membership.user.assistant? ? :info : :neutral), dot: false) %></li>
+        <% end %>
+      </ol>
+    <% end %>
 
-    <%= form.label :starts_at, "Başlangıç" %>
-    <%= form.datetime_local_field :starts_at, required: true %>
-
-    <%= form.label :ends_at, "Bitiş" %>
-    <%= form.datetime_local_field :ends_at, required: true %>
-
-    <%= form.submit "Ekle" %>
-  <% end %>
-</section>
+    <%= render layout: "components/card", locals: { title: "Elle değişiklik ekle" } do %>
+      <%= render "shared/errors", record: @override %>
+      <%= form_with model: @override, url: schedule_overrides_path(@schedule) do |form| %>
+        <div class="field">
+          <%= form.label :user_id, "Kişi" %>
+          <%= form.collection_select :user_id, @users, :id, :name %>
+        </div>
+        <div class="field">
+          <%= form.label :starts_at, "Başlangıç" %>
+          <%= form.datetime_local_field :starts_at, required: true %>
+        </div>
+        <div class="field">
+          <%= form.label :ends_at, "Bitiş" %>
+          <%= form.datetime_local_field :ends_at, required: true %>
+        </div>
+        <%= form.submit "Ekle", class: btn_class(:primary) %>
+      <% end %>
+    <% end %>
+  </aside>
+</div>

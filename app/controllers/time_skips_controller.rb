@@ -2,6 +2,7 @@
 # yalnızca özellik açıkken (bkz. TimeSkip.enabled?).
 class TimeSkipsController < ApplicationController
   include ManagerOnly
+  include LiveRefresh
 
   # Özellik kapalıyken sayfanın varlığı da belli olmasın: kimlik/yetki kontrolünden önce 404.
   prepend_before_action :require_enabled
@@ -18,6 +19,7 @@ class TimeSkipsController < ApplicationController
 
     if @time_skip.valid?
       summary = @time_skip.run!
+      broadcast_refresh(:alerts, :incidents)
       redirect_to new_time_skip_path, notice: "#{@time_skip.minutes} dakika ileri sarıldı. #{describe(summary)}"
     else
       load_open_alerts
@@ -32,6 +34,7 @@ class TimeSkipsController < ApplicationController
 
     def load_open_alerts
       @open_alerts = Alert.not_resolved.includes(:service, :assignee).order(triggered_at: :desc)
+      @active_incidents = Incident.active.includes(:service, lead_assignment: :user).order(declared_at: :desc)
     end
 
     def describe(summary)

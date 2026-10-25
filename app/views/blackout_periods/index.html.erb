@@ -1,29 +1,28 @@
 <% content_for :title, "Akademik takvim" %>
 
-<h1>Akademik takvim</h1>
-<p>
-  Sınav haftası, bayram ve dönem arası gibi kapanma dönemleri. Bu dönemlerde ilgili kişiler
-  tüm nöbet takvimlerinde otomatik atlanır. İlk ve son gün dahildir.
-</p>
-<p><%= link_to "Yeni dönem", new_blackout_period_path %></p>
+<%= render layout: "components/page_header", locals: { eyebrow: "Nöbet · yönetim", title: "Akademik takvim",
+      lead: "Sınav haftası, bayram ve dönem arası. Bu dönemlerde ilgili kişiler bütün nöbet takvimlerinde otomatik atlanır. İlk ve son gün dahil." } do %>
+  <%= link_to "Yeni dönem", new_blackout_period_path, class: btn_class(:primary) %>
+<% end %>
 
-<table>
-  <thead>
-    <tr><th>Ad</th><th>Tür</th><th>Kimlere</th><th>İlk gün</th><th>Son gün</th><th></th></tr>
-  </thead>
-  <tbody>
+<% if @blackout_periods.any? %>
+  <%= render layout: "components/table", locals: { headers: [ "Ad", "Tür", "Kimlere", "İlk gün", "Son gün", "" ] } do %>
     <% @blackout_periods.each do |period| %>
       <tr>
         <td><%= period.name %></td>
-        <td><%= enum_label(period, :kind) %></td>
-        <td><%= enum_label(period, :applies_to) %></td>
-        <td><%= format_date(period.starts_on) %></td>
-        <td><%= format_date(period.ends_on) %></td>
-        <td class="inline-actions">
-          <%= link_to "Düzenle", edit_blackout_period_path(period) %>
-          <%= button_to "Sil", blackout_period_path(period), method: :delete %>
+        <td><%= badge(enum_label(period, :kind), tone: :info, dot: false) %></td>
+        <td><%= badge(enum_label(period, :applies_to), tone: (period.everyone? ? :major : :neutral), dot: false) %></td>
+        <td class="mono"><%= format_date(period.starts_on) %></td>
+        <td class="mono"><%= format_date(period.ends_on) %></td>
+        <td>
+          <div class="inline-actions">
+            <%= link_to "Düzenle", edit_blackout_period_path(period), class: btn_class(:ghost, size: :sm) %>
+            <%= button_to "Sil", blackout_period_path(period), method: :delete, class: btn_class(:ghost, size: :sm) %>
+          </div>
         </td>
       </tr>
     <% end %>
-  </tbody>
-</table>
+  <% end %>
+<% else %>
+  <%= render "components/empty_state", message: "Tanımlı akademik dönem yok.", action_label: "Yeni dönem", action_path: new_blackout_period_path %>
+<% end %>

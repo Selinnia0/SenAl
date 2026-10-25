@@ -19,9 +19,13 @@ class AlertsControllerTest < ActionDispatch::IntegrationTest
     assert_select "td", text: alerts(:triggered).title, count: 0
   end
 
-  test "liste filtresiz tüm olayları gösterir; geçersiz filtre yok sayılır" do
+  test "geçersiz filtre yok sayılır: varsayılan açık alarmlar; 'all' hepsini gösterir" do
     get alerts_path(status: "uydurma")
     assert_response :success
+    Alert.not_resolved.find_each { |alert| assert_select "td", text: alert.title }
+    assert_select "td", text: alerts(:resolved).title, count: 0
+
+    get alerts_path(status: "all")
     Alert.find_each { |alert| assert_select "td", text: alert.title }
   end
 

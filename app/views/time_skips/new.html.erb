@@ -1,54 +1,47 @@
 <% content_for :title, "Zaman sıçraması" %>
 
-<h1>Zaman sıçraması</h1>
-<p>
-  Eskalasyonu (5 dk) veya bayatlamış "Gördüm"ü (4 saat) beklemeden görmek için açık alarmları ileri sarın.
-  Açık alarmların bütün zamanları girilen süre kadar geriye kaydırılır ve her eskalasyon anında gerçek
-  eskalasyon kuralları çalışır; sanki o kadar süre geçmiş gibi olur.
-</p>
-<p><small>
-  Sunucu saati değişmez. Nöbet rotasyonu, izinler ve akademik takvim gerçek saate göre hesaplanmaya devam eder.
-  Çözülmüş alarmlara dokunulmaz. Bu bir demo/test aracıdır.
-</small></p>
-
-<%= render "shared/errors", record: @time_skip %>
-
-<%= form_with model: @time_skip, url: time_skip_path do |form| %>
-  <%= form.label :minutes, "Kaç dakika ileri sarılsın? (1–#{TimeSkip::MAX_MINUTES})" %>
-  <%= form.number_field :minutes, min: 1, max: TimeSkip::MAX_MINUTES, required: true %>
-  <%= form.submit "İleri sar" %>
+<%= render layout: "components/page_header", locals: { eyebrow: "Yönetim · demo aracı", title: "Zaman sıçraması",
+      lead: "Zaman kurallarını beklemeden görmek için ileri sarın: eskalasyon (5 dk), bayatlama (4 saat), güncelleme gecikmesi (30/60 dk), postmortem (5 gün), durum sayfası geçmişi (7 gün)." } do %>
 <% end %>
 
-<div class="inline-actions">
-  <% TimeSkipsController::PRESETS.each do |minutes| %>
-    <%= button_to (if minutes < 60 then "+#{minutes} dk" elsif minutes < 24 * 60 then "+#{minutes / 60} saat" else "+#{minutes / (24 * 60)} gün" end), time_skip_path,
-                  params: { time_skip: { minutes: minutes } } %>
-  <% end %>
-</div>
+<div class="detail-grid">
+  <div>
+    <h2 style="margin-top: 0">Açık alarmlar</h2>
+    <% if @open_alerts.any? %>
+      <%= render "alerts/table", alerts: @open_alerts %>
+    <% else %>
+      <p class="muted">Açık alarm yok. Servisler sayfasından deneme alarmı gönderin.</p>
+    <% end %>
 
-<section>
-  <h2>Açık alarmlar</h2>
-  <% if @open_alerts.any? %>
-    <div style="overflow-x: auto">
-      <table>
-        <thead>
-          <tr><th>#</th><th>Başlık</th><th>Durum</th><th>Seviye / tur</th><th>Atanan</th><th>Sonraki eskalasyon</th></tr>
-        </thead>
-        <tbody>
-          <% @open_alerts.each do |alert| %>
-            <tr>
-              <td><%= link_to alert.id, alert %></td>
-              <td><%= link_to alert.title, alert %></td>
-              <td><%= status_tag(alert) %></td>
-              <td><%= alert.current_level + 1 %> / <%= alert.escalation_round + 1 %></td>
-              <td><%= alert.assignee&.name || "—" %></td>
-              <td><%= format_time(alert.escalate_at) || "—" %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
-  <% else %>
-    <p>Açık alarm yok. Servisler sayfasındaki <code>curl</code> komutuyla bir alarm gönderin.</p>
-  <% end %>
-</section>
+    <h2>Aktif olaylar</h2>
+    <% if @active_incidents.any? %>
+      <%= render "incidents/table", incidents: @active_incidents %>
+    <% else %>
+      <p class="muted">Aktif olay yok.</p>
+    <% end %>
+  </div>
+
+  <aside aria-label="İleri sar">
+    <%= render layout: "components/card", locals: { title: "İleri sar" } do %>
+      <%= render "shared/errors", record: @time_skip %>
+      <%= form_with model: @time_skip, url: time_skip_path do |form| %>
+        <div class="field">
+          <%= form.label :minutes, "Dakika (1–#{TimeSkip::MAX_MINUTES})" %>
+          <%= form.number_field :minutes, min: 1, max: TimeSkip::MAX_MINUTES, required: true %>
+        </div>
+        <%= form.submit "İleri sar", class: btn_class(:primary, block: true) %>
+      <% end %>
+      <p class="eyebrow" style="margin-top: var(--sa-space-6)">Hızlı</p>
+      <div class="preset-grid">
+        <% TimeSkipsController::PRESETS.each do |minutes| %>
+          <%= button_to (if minutes < 60 then "+#{minutes} dk" elsif minutes < 24 * 60 then "+#{minutes / 60} saat" else "+#{minutes / (24 * 60)} gün" end), time_skip_path,
+                        params: { time_skip: { minutes: minutes } }, class: btn_class(:secondary, size: :sm, block: true) %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%= render layout: "components/card", locals: { title: "Nasıl çalışır?", muted: true } do %>
+      <p class="muted">Sunucu saati değişmez. Açık alarmların ve olayların zamanları geriye kaydırılır, her kural anında gerçek kural metotları çalışır. Nöbet rotasyonu, izinler ve akademik takvim gerçek saate göre hesaplanır.</p>
+    <% end %>
+  </aside>
+</div>

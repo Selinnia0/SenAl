@@ -1,19 +1,29 @@
-<%= render "shared/errors", record: blackout_period %>
-<%= form_with model: blackout_period do |form| %>
-  <%= form.label :name, "Ad" %>
-  <%= form.text_field :name, required: true, placeholder: "ör. 2026 Güz Vize Haftası" %>
-
-  <%= form.label :kind, "Tür" %>
-  <%= form.select :kind, BlackoutPeriod.kinds.keys.map { |kind| [ t("enums.blackout_period.kind.#{kind}"), kind ] } %>
-
-  <%= form.label :applies_to, "Kimlere uygulanır" %>
-  <%= form.select :applies_to, BlackoutPeriod.applies_tos.keys.map { |value| [ t("enums.blackout_period.applies_to.#{value}"), value ] } %>
-
-  <%= form.label :starts_on, "İlk gün" %>
-  <%= form.date_field :starts_on, required: true %>
-
-  <%= form.label :ends_on, "Son gün" %>
-  <%= form.date_field :ends_on, required: true %>
-
-  <%= form.submit "Kaydet" %>
-<% end %>
+<div class="card form-card">
+  <%= render "shared/errors", record: blackout_period %>
+  <%= form_with model: blackout_period do |form| %>
+    <div class="field">
+      <%= form.label :name, "Ad" %>
+      <%= form.text_field :name, required: true, placeholder: "ör. 2026 Güz Vize Haftası" %>
+    </div>
+    <div class="field">
+      <%= form.label :kind, "Tür" %>
+      <%= form.select :kind, BlackoutPeriod.kinds.keys.map { |kind| [ t("enums.blackout_period.kind.#{kind}"), kind ] } %>
+    </div>
+    <div class="field">
+      <%= form.label :applies_to, "Kimlere uygulanır" %>
+      <%= form.select :applies_to, BlackoutPeriod.applies_tos.keys.map { |value| [ t("enums.blackout_period.applies_to.#{value}"), value ] } %>
+      <p class="field__hint">"Yalnızca asistanlar": sınav haftası gibi; "Herkes": bayram gibi.</p>
+    </div>
+    <div class="row">
+      <div class="field" style="flex: 1">
+        <%= form.label :starts_on, "İlk gün" %>
+        <%= form.date_field :starts_on, required: true %>
+      </div>
+      <div class="field" style="flex: 1">
+        <%= form.label :ends_on, "Son gün" %>
+        <%= form.date_field :ends_on, required: true %>
+      </div>
+    </div>
+    <%= form.submit "Kaydet", class: btn_class(:primary) %>
+  <% end %>
+</div>

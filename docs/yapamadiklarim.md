@@ -31,7 +31,7 @@
 | C | İş günü | "5 gün" takvim günüdür; iş günü hesabı için gem gerekirdi, kullanılmadı. |
 | B, C | PostgreSQL'de domain testleri | Testler SQLite'ta koşar. PostgreSQL'de yalnızca migration'lar (yükseltme ve sıfırdan kurulum) ve seed denendi; yeni scope'lar (`or`/`and`, Range) PostgreSQL'de çalıştırılmadı. |
 | — | v2'nin canlıya alınması | `v2-incident-response` dalı push edilmedi, deploy edilmedi (ajanın GitHub kimlik bilgisi yok). Canlı URL v1'i gösterir. |
-| E | Eski ekranların bileşenlere taşınması | Takvim, müsaitlik, servis, akademik takvim, bildirim, zaman sıçraması ekranları yeni temel stillerle çalışır ama bileşenlere (kart, tablo, sayfa başlığı) taşınmadı; spec Faz E'de dört ekran istiyordu. |
+| E | Eski ekranlar (giderildi) | Faz E'de alarm, takvim, müsaitlik, servis, akademik takvim, bildirim ve zaman sıçraması ekranları ham kalmıştı (Pico kalkınca filtreler madde işaretli listeye döndü); insan bildirdi. Hepsi bileşenlere taşındı; `test/controllers/legacy_pages_redesign_test.rb` sayfa başlığını, tablo bileşenini ve formların kartta olduğunu kontrol eder. |
 | E | Arama | Yalnızca olay başlığında, büyük/küçük harf duyarsız `LIKE`. SQLite'ta `LOWER` yalnızca ASCII'yi küçültür (ör. "İ"). |
 | — | API alan adı değişti | Yanıttaki `incident_id` artık `alert_id`; bu alanı okuyan dış bir sistem varsa bozulur. |
 

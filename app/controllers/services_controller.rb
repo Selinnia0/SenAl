@@ -1,5 +1,6 @@
 class ServicesController < ApplicationController
   include ManagerOnly
+  include LiveRefresh
 
   before_action :set_service, only: %i[ show edit update destroy test_alert ]
 
@@ -55,6 +56,7 @@ class ServicesController < ApplicationController
     )
 
     if result.http_status == :accepted
+      broadcast_refresh(:alerts)
       status = result.body[:status] == "deduplicated" ? "Açık alarm zaten var; tekrar eden alarm olarak eklendi." : "Deneme alarmı gönderildi."
       redirect_to alert_path(result.body[:alert_id]), notice: status
     else

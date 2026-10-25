@@ -1,18 +1,33 @@
 <% content_for :title, "Alarmlar" %>
+<% content_for :head do %><%= turbo_refreshes_with method: :morph, scroll: :preserve %><% end %>
+<%= turbo_stream_from :alerts %>
 
-<h1>Alarmlar</h1>
+<%= render layout: "components/page_header", locals: { eyebrow: "Müdahale · nöbet katmanı", title: "Alarmlar",
+      lead: (@query.present? ? "\"#{@query}\" için sonuçlar" : "İzlenen sistemlerden gelen alarmlar. \"Gördüm\" denmezse 5 dakikada bir sonraki seviyeye eskale edilir.") } do %>
+  <%= form_with url: alerts_path, method: :get, class: "inline-search", role: "search" do %>
+    <label for="alert-search" class="visually-hidden">Alarm ara</label>
+    <input id="alert-search" type="search" name="q" value="<%= @query %>" placeholder="Alarm ara…">
+    <input type="hidden" name="status" value="<%= @status %>">
+  <% end %>
+<% end %>
 
-<nav>
-  <ul>
-    <li><%= link_to_unless @status.nil?, "Tümü", alerts_path %></li>
-    <% Alert.statuses.each_key do |status| %>
-      <li><%= link_to_unless @status == status, t("enums.alert.status.#{status}"), alerts_path(status: status) %></li>
-    <% end %>
-  </ul>
-</nav>
+<div class="filters" aria-label="Durum filtresi">
+  <%= alert_filter_pill "Açık", { urgency: @urgency, q: @query.presence }, @status.nil? %>
+  <% Alert.statuses.each_key do |status| %>
+    <%= alert_filter_pill t("enums.alert.status.#{status}"), { status: status, urgency: @urgency, q: @query.presence }, @status == status %>
+  <% end %>
+  <%= alert_filter_pill "Tümü", { status: "all", urgency: @urgency, q: @query.presence }, @status == "all" %>
+</div>
+<div class="filters" aria-label="Aciliyet filtresi">
+  <%= alert_filter_pill "Her aciliyet", { status: @status, q: @query.presence }, @urgency.nil? %>
+  <% Alert.urgencies.each_key do |urgency| %>
+    <%= alert_filter_pill t("enums.alert.urgency.#{urgency}"), { status: @status, urgency: urgency, q: @query.presence }, @urgency == urgency %>
+  <% end %>
+</div>
 
 <% if @alerts.any? %>
   <%= render "alerts/table", alerts: @alerts %>
 <% else %>
-  <p>Bu durumda alarm yok.</p>
+  <%= render "components/empty_state", message: (@status.nil? ? "Açık alarm yok. Sessiz bir gün." : "Bu filtrede alarm yok."),
+             action_label: "Tüm alarmlar", action_path: alerts_path(status: "all"), action_variant: :secondary %>
 <% end %>

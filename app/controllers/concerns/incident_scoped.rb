@@ -2,6 +2,7 @@
 # ve canlı yenilemeyi açıkça yayınlar (callback değil; yasak listesi).
 module IncidentScoped
   extend ActiveSupport::Concern
+  include LiveRefresh
 
   DOMAIN_ERRORS = [ Incident::InvalidTransition, Incident::NotPermitted, ActiveRecord::RecordInvalid ].freeze
 
@@ -10,11 +11,9 @@ module IncidentScoped
       @incident = Incident.find(params[:incident_id] || params[:id])
     end
 
-    # Olayı ve listeyi izleyen herkese Turbo 8 sayfa yenilemesi (morph). İşlemi yapan tarayıcı
-    # kendi isteğinin yenilemesini request_id sayesinde yok sayar.
+    # Olayı ve listeyi (pano dahil) izleyen herkese yenileme.
     def broadcast_incident_change(incident = @incident)
-      Turbo::StreamsChannel.broadcast_refresh_to(incident, request_id: Turbo.current_request_id)
-      Turbo::StreamsChannel.broadcast_refresh_to(:incidents, request_id: Turbo.current_request_id)
+      broadcast_refresh(incident, :incidents)
     end
 
     # Domain işlemini çalıştırır; başarılıysa yayınlar ve olay sayfasına döner, hata mesajı flash olur.

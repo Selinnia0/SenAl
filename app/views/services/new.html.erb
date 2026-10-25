@@ -1,5 +1,7 @@
 <% content_for :title, "Yeni servis" %>
 
-<h1>Yeni servis</h1>
+<%= render layout: "components/page_header", locals: { eyebrow: "Servisler", title: "Yeni servis",
+      lead: "Entegrasyon anahtarı kayıtta otomatik üretilir." } do %>
+  <%= link_to "Vazgeç", services_path, class: btn_class(:ghost) %>
+<% end %>
 <%= render "form", service: @service %>
-<p>Entegrasyon anahtarı kayıtta otomatik üretilir.</p>

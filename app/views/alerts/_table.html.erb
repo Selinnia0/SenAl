@@ -1,20 +1,15 @@
-<div style="overflow-x: auto">
-  <table>
-    <thead>
-      <tr><th>#</th><th>Başlık</th><th>Servis</th><th>Durum</th><th>Aciliyet</th><th>Atanan</th><th>Açılış</th></tr>
-    </thead>
-    <tbody>
-      <% alerts.each do |alert| %>
-        <tr>
-          <td><%= link_to alert.id, alert %></td>
-          <td><%= link_to alert.title, alert %></td>
-          <td><%= alert.service.name %></td>
-          <td><%= status_tag(alert) %></td>
-          <td><%= enum_label(alert, :urgency) %></td>
-          <td><%= alert.assignee&.name || "—" %></td>
-          <td><%= format_time(alert.triggered_at) %></td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
-</div>
+<%# locals: (alerts:) -%>
+<%= render layout: "components/table", locals: { headers: [ "Kimlik", "Başlık", "Servis", "Durum", "Aciliyet", "Atanan", "Seviye", "Açılış" ] } do %>
+  <% alerts.each do |alert| %>
+    <tr>
+      <td class="mono"><%= link_to "##{alert_ref(alert)}", alert %></td>
+      <td><%= link_to alert.title, alert %></td>
+      <td><%= alert.service.name %></td>
+      <td><%= alert_status_badge(alert) %></td>
+      <td><%= urgency_badge(alert) %></td>
+      <td><%= alert.assignee&.name || "—" %></td>
+      <td class="mono"><%= alert.current_level + 1 %>/<%= alert.escalation_round + 1 %></td>
+      <td><%= mono_time(alert.triggered_at) %></td>
+    </tr>
+  <% end %>
+<% end %>

@@ -1,19 +1,24 @@
 <% content_for :title, "Servisler" %>
 
-<h1>Servisler</h1>
-<p><%= link_to "Yeni servis", new_service_path %></p>
+<%= render layout: "components/page_header", locals: { eyebrow: "Yönetim", title: "Servisler",
+      lead: "İzlenen sistemler. Her servis kendi entegrasyon anahtarıyla alarm gönderir." } do %>
+  <%= link_to "Yeni servis", new_service_path, class: btn_class(:primary) %>
+<% end %>
 
-<table>
-  <thead>
-    <tr><th>Servis</th><th>Eskalasyon politikası</th><th>"Gördüm" sıfırlama</th></tr>
-  </thead>
-  <tbody>
+<% if @services.any? %>
+  <%= render layout: "components/table", locals: { headers: [ "Servis", "Eskalasyon politikası", "Açık alarm", "Aktif olay", "\"Gördüm\" sıfırlama" ] } do %>
     <% @services.each do |service| %>
+      <% open_alerts = service.alerts.not_resolved.count %>
+      <% active_incidents = service.incidents.active.count %>
       <tr>
         <td><%= link_to service.name, service %></td>
         <td><%= service.escalation_policy.name %></td>
-        <td><%= service.ack_reset_minutes %> dk</td>
+        <td><%= open_alerts.positive? ? badge(open_alerts.to_s, tone: :critical) : badge("0", tone: :neutral, dot: false) %></td>
+        <td><%= active_incidents.positive? ? badge(active_incidents.to_s, tone: :accent) : badge("0", tone: :neutral, dot: false) %></td>
+        <td class="mono"><%= service.ack_reset_minutes %> dk</td>
       </tr>
     <% end %>
-  </tbody>
-</table>
+  <% end %>
+<% else %>
+  <%= render "components/empty_state", message: "Henüz servis yok.", action_label: "Yeni servis", action_path: new_service_path %>
+<% end %>

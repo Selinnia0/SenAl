@@ -1,4 +1,6 @@
 <% content_for :title, "Yeni akademik dönem" %>
 
-<h1>Yeni akademik kapanma dönemi</h1>
+<%= render layout: "components/page_header", locals: { eyebrow: "Akademik takvim", title: "Yeni akademik kapanma dönemi" } do %>
+  <%= link_to "Vazgeç", blackout_periods_path, class: btn_class(:ghost) %>
+<% end %>
 <%= render "form", blackout_period: @blackout_period %>

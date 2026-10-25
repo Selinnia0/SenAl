@@ -1,20 +1,18 @@
 <% content_for :title, "Takvimler" %>
 
-<h1>Nöbet takvimleri</h1>
+<%= render layout: "components/page_header", locals: { eyebrow: "Nöbet", title: "Nöbet takvimleri",
+      lead: "İzinli kişiler ve akademik kapanma dönemleri bütün takvimlerde otomatik atlanır." } do %>
+  <%= link_to "Müsaitliğim", unavailabilities_path, class: btn_class(:secondary) %>
+<% end %>
 
-<table>
-  <thead>
-    <tr><th>Takvim</th><th>Üyeler (sırayla)</th><th>Rotasyon</th><th>Şu an nöbetçi</th></tr>
-  </thead>
-  <tbody>
-    <% @schedules.each do |schedule| %>
-      <% on_call = OnCall.for(schedule, at: Time.current) %>
-      <tr class="<%= "gap" unless on_call %>">
-        <td><%= link_to schedule.name, schedule %></td>
-        <td><%= schedule.members.map(&:name).join(", ") %></td>
-        <td><%= schedule.rotation_days %> gün</td>
-        <td><%= on_call&.name || "Boşluk" %></td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
+<%= render layout: "components/table", locals: { headers: [ "Takvim", "Üyeler (sırayla)", "Rotasyon", "Şu an nöbetçi" ] } do %>
+  <% @schedules.each do |schedule| %>
+    <% on_call = OnCall.for(schedule, at: Time.current) %>
+    <tr class="<%= "gap" unless on_call %>">
+      <td><%= link_to schedule.name, schedule %></td>
+      <td><%= schedule.members.map(&:name).join(", ") %></td>
+      <td class="mono"><%= schedule.rotation_days %> gün</td>
+      <td><%= on_call ? on_call.name : badge("Boşluk", tone: :critical) %></td>
+    </tr>
+  <% end %>
+<% end %>

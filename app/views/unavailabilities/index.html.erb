@@ -1,60 +1,62 @@
 <% content_for :title, "Müsaitliğim" %>
 
-<h1>Müsaitliğim</h1>
-<p>İzninizi bir kez girin; tüm nöbet takvimlerinde otomatik olarak atlanırsınız.</p>
+<%= render layout: "components/page_header", locals: { eyebrow: "Nöbet", title: "Müsaitliğim",
+      lead: "İzninizi bir kez girin; bütün nöbet takvimlerinde otomatik atlanırsınız ve olay lideri olarak önerilmezsiniz." } do %>
+<% end %>
 
-<section>
-  <h2>İzinlerim</h2>
-  <% if @unavailabilities.any? %>
-    <table>
-      <thead>
-        <tr><th>Başlangıç</th><th>Bitiş</th><th>Sebep</th><th></th></tr>
-      </thead>
-      <tbody>
+<div class="detail-grid">
+  <div>
+    <h2 style="margin-top: 0">İzinlerim</h2>
+    <% if @unavailabilities.any? %>
+      <%= render layout: "components/table", locals: { headers: [ "Başlangıç", "Bitiş", "Sebep", "" ] } do %>
         <% @unavailabilities.each do |unavailability| %>
           <tr>
             <td><%= format_time(unavailability.starts_at) %></td>
             <td><%= format_time(unavailability.ends_at) %></td>
             <td><%= unavailability.reason %></td>
-            <td><%= button_to "Sil", unavailability_path(unavailability), method: :delete %></td>
+            <td><%= button_to "Sil", unavailability_path(unavailability), method: :delete, class: btn_class(:ghost, size: :sm) %></td>
           </tr>
         <% end %>
-      </tbody>
-    </table>
-  <% else %>
-    <p>Kayıtlı izniniz yok.</p>
-  <% end %>
-</section>
-
-<section>
-  <h2>İzin ekle</h2>
-  <%= render "shared/errors", record: @unavailability %>
-  <%= form_with model: @unavailability, url: unavailabilities_path do |form| %>
-    <%= form.label :starts_at, "Başlangıç" %>
-    <%= form.datetime_local_field :starts_at, required: true %>
-
-    <%= form.label :ends_at, "Bitiş" %>
-    <%= form.datetime_local_field :ends_at, required: true %>
-
-    <%= form.label :reason, "Sebep" %>
-    <%= form.text_field :reason, placeholder: "ör. Yıllık izin" %>
-
-    <%= form.submit "Ekle" %>
-  <% end %>
-</section>
-
-<section>
-  <h2>Size uygulanan akademik kapanma dönemleri</h2>
-  <% if @blackout_periods.any? %>
-    <ul>
-      <% @blackout_periods.each do |period| %>
-        <li>
-          <%= period.name %> (<%= enum_label(period, :kind) %>):
-          <%= format_date(period.starts_on) %> – <%= format_date(period.ends_on) %>
-        </li>
       <% end %>
-    </ul>
-  <% else %>
-    <p>Yaklaşan dönem yok.</p>
-  <% end %>
-</section>
+    <% else %>
+      <%= render "components/empty_state", message: "Kayıtlı izniniz yok." %>
+    <% end %>
+
+    <h2>Size uygulanan akademik kapanma dönemleri</h2>
+    <% if @blackout_periods.any? %>
+      <%= render layout: "components/table", locals: { headers: [ "Dönem", "Tür", "İlk gün", "Son gün" ] } do %>
+        <% @blackout_periods.each do |period| %>
+          <tr>
+            <td><%= period.name %></td>
+            <td><%= badge(enum_label(period, :kind), tone: :info, dot: false) %></td>
+            <td class="mono"><%= format_date(period.starts_on) %></td>
+            <td class="mono"><%= format_date(period.ends_on) %></td>
+          </tr>
+        <% end %>
+      <% end %>
+    <% else %>
+      <p class="muted">Yaklaşan dönem yok.</p>
+    <% end %>
+  </div>
+
+  <aside aria-label="İzin ekle">
+    <%= render layout: "components/card", locals: { title: "İzin ekle" } do %>
+      <%= render "shared/errors", record: @unavailability %>
+      <%= form_with model: @unavailability, url: unavailabilities_path do |form| %>
+        <div class="field">
+          <%= form.label :starts_at, "Başlangıç" %>
+          <%= form.datetime_local_field :starts_at, required: true %>
+        </div>
+        <div class="field">
+          <%= form.label :ends_at, "Bitiş" %>
+          <%= form.datetime_local_field :ends_at, required: true %>
+        </div>
+        <div class="field">
+          <%= form.label :reason, "Sebep" %>
+          <%= form.text_field :reason, placeholder: "ör. Yıllık izin" %>
+        </div>
+        <%= form.submit "Ekle", class: btn_class(:primary) %>
+      <% end %>
+    <% end %>
+  </aside>
+</div>

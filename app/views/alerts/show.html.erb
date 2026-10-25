@@ -1,60 +1,75 @@
-<% content_for :title, "Alarm ##{@alert.id}" %>
+<% content_for :title, "#{alert_ref(@alert)} #{@alert.title}" %>
+<% content_for :head do %><%= turbo_refreshes_with method: :morph, scroll: :preserve %><% end %>
+<%= turbo_stream_from @alert %>
 
-<article>
-  <header>
-    <h1>#<%= @alert.id %> <%= @alert.title %></h1>
-    <%= status_tag(@alert) %> · Aciliyet: <%= enum_label(@alert, :urgency) %>
-  </header>
+<div class="detail-grid">
+  <div>
+    <span class="eyebrow"><%= alert_ref(@alert) %> · <%= @alert.service.name %> · <%= mono_time(@alert.triggered_at) %></span>
+    <h1 class="incident-title"><%= @alert.title %></h1>
+    <div class="row" style="margin-bottom: var(--sa-space-6)">
+      <%= alert_status_badge(@alert) %>
+      <%= urgency_badge(@alert) %>
+      <span class="mono muted"><%= @alert.dedup_key %></span>
+    </div>
 
-  <dl>
-    <dt>Servis</dt>
-    <dd><%= @alert.service.name %></dd>
-    <dt>Tekilleştirme anahtarı</dt>
-    <dd><code><%= @alert.dedup_key %></code></dd>
-    <dt>Atanan</dt>
-    <dd><%= @alert.assignee&.name || "—" %></dd>
-    <dt>Eskalasyon</dt>
-    <dd>
-      Seviye <%= @alert.current_level + 1 %>, tur <%= @alert.escalation_round + 1 %>
-      <% if @alert.escalate_at %>
-        · bir sonraki eskalasyon: <%= format_time(@alert.escalate_at) %>
-      <% end %>
-    </dd>
-    <dt>Açılış</dt>
-    <dd><%= format_time(@alert.triggered_at) %></dd>
-    <% if @alert.acknowledged_at %>
-      <dt>Görülme</dt>
-      <dd><%= format_time(@alert.acknowledged_at) %></dd>
+    <% if @alert.escalate_at %>
+      <div class="banner banner--info" role="status">
+        <strong>Sonraki eskalasyon <%= mono_time(@alert.escalate_at) %>.</strong>
+        "Gördüm" denmezse seviye <%= @alert.current_level + 2 %>'e geçer ya da yeni tura döner.
+      </div>
     <% end %>
-    <% if @alert.resolved_at %>
-      <dt>Çözülme</dt>
-      <dd><%= format_time(@alert.resolved_at) %></dd>
-    <% end %>
-  </dl>
 
-  <% if @alert.can_acknowledge? || @alert.can_resolve? %>
-    <footer class="inline-actions">
-      <%= link_to "Olay ilan et", new_incident_path(alert_id: @alert.id), class: btn_class(:primary) %>
-      <% if @alert.can_acknowledge? %>
-        <%= button_to "Gördüm", acknowledge_alert_path(@alert) %>
-      <% end %>
-      <% if @alert.can_resolve? %>
-        <%= button_to "Çözüldü", resolve_alert_path(@alert) %>
-      <% end %>
-    </footer>
-  <% end %>
-</article>
-
-<section>
-  <h2>Zaman çizelgesi</h2>
-  <ol>
-    <% @alert.alert_events.includes(:user).each do |event| %>
-      <li>
-        <time datetime="<%= event.occurred_at.iso8601 %>"><%= format_time(event.occurred_at) %></time>
-        — <strong><%= event_label(event) %></strong>
-        <% if event.user %> · <%= event.user.name %><% end %>
-        <% if (description = event_description(event)) %> · <%= description %><% end %>
-      </li>
+    <h2 style="margin-top: 0">Zaman çizelgesi</h2>
+    <% if (items = alert_timeline_items(@alert)).any? %>
+      <%= render "components/timeline", items: items.reverse %>
+    <% else %>
+      <p class="muted">Henüz zaman çizelgesi kaydı yok.</p>
     <% end %>
-  </ol>
-</section>
+  </div>
+
+  <aside aria-label="Alarm paneli">
+    <%= render layout: "components/card", locals: { title: "Eylemler" } do %>
+      <div class="transitions stack">
+        <% if @alert.can_acknowledge? %>
+          <%= button_to "Gördüm", acknowledge_alert_path(@alert), class: btn_class(:primary, block: true) %>
+        <% end %>
+        <% if @alert.can_resolve? %>
+          <%= button_to "Çözüldü", resolve_alert_path(@alert), class: btn_class(:secondary, block: true) %>
+        <% end %>
+        <% unless @alert.resolved? %>
+          <%= link_to "Olay ilan et", new_incident_path(alert_id: @alert.id), class: btn_class(:secondary, block: true) %>
+        <% end %>
+      </div>
+      <% if @alert.resolved? %><p class="muted">Alarm çözüldü; başka eylem yok.</p><% end %>
+    <% end %>
+
+    <%= render layout: "components/card", locals: { title: "Ayrıntılar" } do %>
+      <dl class="roles">
+        <dt>Atanan</dt>
+        <dd><%= @alert.assignee&.name || "—" %></dd>
+        <dt>Eskalasyon</dt>
+        <dd>Seviye <%= @alert.current_level + 1 %>, tur <%= @alert.escalation_round + 1 %></dd>
+        <dt>Açılış</dt>
+        <dd><%= mono_time(@alert.triggered_at) %></dd>
+        <% if @alert.acknowledged_at %>
+          <dt>Görülme</dt>
+          <dd><%= mono_time(@alert.acknowledged_at) %></dd>
+        <% end %>
+        <% if @alert.resolved_at %>
+          <dt>Çözülme</dt>
+          <dd><%= mono_time(@alert.resolved_at) %></dd>
+        <% end %>
+      </dl>
+    <% end %>
+
+    <% if @alert.incidents.any? %>
+      <%= render layout: "components/card", locals: { title: "Bu alarmdan ilan edilen olaylar", muted: true } do %>
+        <ul class="plain-list">
+          <% @alert.incidents.each do |incident| %>
+            <li><span class="mono"><%= incident_ref(incident) %></span> <%= link_to incident.title, incident %> <%= incident_status_badge(incident) %></li>
+          <% end %>
+        </ul>
+      <% end %>
+    <% end %>
+  </aside>
+</div>
