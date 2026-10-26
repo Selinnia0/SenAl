@@ -116,4 +116,30 @@ class TimeSkipTest < ActiveSupport::TestCase
     assert_not_includes Incident.recent_for_status_page, incident
     assert_equal (7.days + 1.minute).ago, incident.status_page_updates.reload.last.published_at
   end
+
+  test "açık takip görevi ve yayınlanmamış postmortem taslağı olan olayda da çalışır (boş zaman sütunları atlanır)" do
+    incident = Incident.declare!(service: services(:sis), title: "Taslaklı olay", severity: :major, lead: @alice, by: @bob)
+    incident.transition_to!(:investigating, by: @alice)
+    incident.transition_to!(:resolved, by: @alice)
+    follow_up = incident.follow_ups.create!(title: "Runbook yaz", owner: @bob)  # completed_at boş
+    incident.create_postmortem!(body: "Taslak")                                  # published_at boş
+
+    assert_nothing_raised { TimeSkip.new(minutes: 5).run! }
+
+    assert_nil follow_up.reload.completed_at
+    assert_nil incident.postmortem.reload.published_at
+    assert_equal 5.minutes.ago, incident.reload.resolved_at
+  end
+
+  test "tamamlanmış takip görevi ve yayınlanmış postmortem zamanları da kayar" do
+    incident = Incident.declare!(service: services(:sis), title: "Tamamlanmış", severity: :minor, lead: @alice, by: @bob)
+    follow_up = incident.follow_ups.create!(title: "Bitti", owner: @bob)
+    follow_up.complete!
+    incident.create_postmortem!(body: "Yayında").publish!
+
+    TimeSkip.new(minutes: 10).run!
+
+    assert_equal 10.minutes.ago, follow_up.reload.completed_at
+    assert_equal 10.minutes.ago, incident.postmortem.reload.published_at
+  end
 end

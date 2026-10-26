@@ -79,7 +79,7 @@ class TimeSkip
     # update_columns bilinçli: bu bir zaman kaydırması, domain geçişi değil; doğrulama/callback yok.
     def shift_open_alerts!(seconds)
       Alert.not_resolved.includes(:alert_events, :notifications).find_each do |alert|
-        alert.update_columns(shifted(alert, ALERT_TIMES, seconds))
+        shift_columns!(alert, ALERT_TIMES, seconds)
         alert.alert_events.each { |event| event.update_columns(occurred_at: event.occurred_at - seconds) }
         alert.notifications.each { |notification| notification.update_columns(created_at: notification.created_at - seconds) }
       end
@@ -89,16 +89,19 @@ class TimeSkip
     def shift_incidents!(seconds)
       Incident.includes(:timeline_events, :status_page_updates, :notifications, :postmortem, :follow_ups)
               .find_each do |incident|
-        incident.update_columns(shifted(incident, INCIDENT_TIMES, seconds))
+        shift_columns!(incident, INCIDENT_TIMES, seconds)
         incident.timeline_events.each { |event| event.update_columns(occurred_at: event.occurred_at - seconds) }
         incident.status_page_updates.each { |update| update.update_columns(published_at: update.published_at - seconds) }
         incident.notifications.each { |notification| notification.update_columns(created_at: notification.created_at - seconds) }
-        incident.postmortem&.then { |postmortem| postmortem.update_columns(shifted(postmortem, %i[published_at], seconds)) }
-        incident.follow_ups.each { |follow_up| follow_up.update_columns(shifted(follow_up, %i[completed_at], seconds)) }
+        shift_columns!(incident.postmortem, %i[published_at], seconds) if incident.postmortem
+        incident.follow_ups.each { |follow_up| shift_columns!(follow_up, %i[completed_at], seconds) }
       end
     end
 
-    def shifted(record, attributes, seconds)
-      attributes.filter_map { |attribute| [ attribute, record[attribute] - seconds ] if record[attribute] }.to_h
+    # Yalnızca dolu zaman sütunlarını kaydırır. Hepsi boşsa (ör. tamamlanmamış takip görevi, taslak postmortem)
+    # hiç güncelleme yapılmaz: update_columns({}) sütunsuz "UPDATE ... WHERE" üretip SQL hatası verir.
+    def shift_columns!(record, attributes, seconds)
+      changes = attributes.filter_map { |attribute| [ attribute, record[attribute] - seconds ] if record[attribute] }.to_h
+      record.update_columns(changes) if changes.any?
     end
 end
